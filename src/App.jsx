@@ -1,3 +1,4 @@
+import jsPDF from "jspdf";
 import { useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { SignedIn, SignedOut, SignInButton, SignUpButton, UserButton, useUser } from "@clerk/clerk-react";
@@ -86,6 +87,7 @@ ${text}` }] }] })
   if (!data.candidates) throw new Error("No response from Gemini");
   return JSON.parse(data.candidates[0].content.parts[0].text.replace(/```json|```/g, "").trim());
 }
+
 
 async function tailorCV(originalCvText, job) {
   const prompt = `Rewrite this CV to perfectly match this job. Rules:
@@ -184,8 +186,8 @@ async function fetchJSearchJobs(profile, country) {
     console.error("❌ JSearch fetch failed:", error.message);
     return [];
   }
-}async function fetchRealJobs(profile, country) {
-  const queries = [];
+}
+async function fetchRealJobs(profile, country, category = "all") {  const queries = [];  
   if (profile.job_titles?.length > 0) profile.job_titles.slice(0, 3).forEach(r => queries.push(r));
   if (queries.length < 3 && profile.skills?.length > 0) queries.push(profile.skills.slice(0, 2).join(" "));
   if (queries.length === 0) queries.push("marketing");
@@ -256,6 +258,7 @@ export default function App() {
   const [cvText, setCvText] = useState("");
   const [profile, setProfile] = useState(null);
   const [jobs, setJobs] = useState([]);
+  const [originalJobs, setOriginalJobs] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [country, setCountry] = useState("gb");
@@ -266,6 +269,7 @@ export default function App() {
   const [showPaywall, setShowPaywall] = useState(false);
   const [hasPaid, setHasPaid] = useState(false);
   const [loaded, setLoaded] = useState(false);
+  const [jobFilter, setJobFilter] = useState("all");
 
   // Load saved state once user is known
   if (user?.id && !loaded) {
@@ -300,16 +304,184 @@ export default function App() {
     navigator.clipboard.writeText(tailoredCV);
     alert("✅ Copied!");
   }
-  function downloadTailoredCV() {
-    const blob = new Blob([tailoredCV], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `CV-${tailoringJob.company.replace(/\s+/g, "_")}.txt`;
-    a.click();
-    URL.revokeObjectURL(url);
+const downloadTailoredCV = () => {
+    const doc = new jsPDF({
+      orientation: "portrait",
+      unit: "mm",
+      format: "a4"
+    });
+    
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const margin = 20;
+    const maxWidth = pageWidth - (margin * 2);
+    let yPos = 25;
+    
+    // GREEN HEADER BAR
+    doc.setFillColor(0, 229, 160);
+    doc.rect(0, 0, pageWidth, 8, "F");
+    
+    // Parse CV
+    const lines = tailoredCV.split("\n");
+    const name = lines[0]?.trim() || "Professional CV";
+    
+    // NAME - Big & Bold
+    doc.setFontSize(24);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(20, 20, 30);
+    doc.text(name, margin, yPos);
+    yPos += 9;
+    
+    // "Tailored for" badge
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "italic");
+    doc.setTextColor(0, 150, 105);
+    doc.text(`✨ Tailored for: ${tailoringJob.title} at ${tailoringJob.company}`, margin, yPos);
+    yPos += 8;
+    
+    // Green divider line
+    doc.setDrawColor(0, 229, 160);
+    doc.setLineWidth(0.8);
+    doc.line(margin, yPos, pageWidth - margin, yPos);
+    yPos += 8;
+    
+    // Body text default
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(40, 40, 50);
+    
+    // Process all lines
+    for (let i = 1; i < lines.length; i++) {
+      let line = lines[i].trim();
+      
+      if (!line) {
+        yPos += 3;
+        continue;
+      }
+      
+      // Page break
+      if (yPos > pageHeight - 25) {
+        doc.addPage();
+        // New page header
+        doc.setFillColor(0, 229, 160);
+        doc.rect(0, 0, pageWidth, 8, "F");
+        yPos = 25;
+      }
+      
+      // Section header detection (**HEADER** or UPPERCASE)
+      const isBoldHeader = line.match(/^\*\*(.+?)\*\*$/);
+      const isUppercaseHeader = line.length < 50 && line === line.toUpperCase() && line.length > 3 && /[A-Z]/.test(line);
+      
+      if (isBoldHeader || isUppercaseHeader) {
+        const headerText = line.replace(/\*\*/g, "").trim();
+        yPos += 4;
+        doc.setFontSize(13);
+        doc.setFont("helvetica", "bold");
+        doc.setTextColor(0, 150, 105);
+        doc.text(headerText, margin, yPos);
+        yPos += 2;
+        
+        // Small underline
+        doc.setDrawColor(0, 229, 160);
+        doc.setLineWidth(0.3);
+        doc.line(margin, yPos, margin + 45, yPos);
+        yPos += 6;
+        
+        // Reset body style
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "normal");
+        doc.setTextColor(40, 40, 50);
+      } else if (line.startsWith("*") || line.startsWith("-") || line.startsWith("•")) {
+        // Bullet
+        const bulletText = line.replace(/^[\*\-•]\s*/, "").replace(/\*\*/g, "");
+        const wrappedLines = doc.splitTextToSize("• " + bulletText, maxWidth - 5);
+        doc.text(wrappedLines, margin + 3, yPos);
+        yPos += wrappedLines.length * 5;
+      } else {
+        // Normal paragraph
+        const cleanLine = line.replace(/\*\*/g, "");
+        const wrappedLines = doc.splitTextToSize(cleanLine, maxWidth);
+        doc.text(wrappedLines, margin, yPos);
+        yPos += wrappedLines.length * 5;
+      }
+    }
+    
+    // FOOTER
+    const footerY = pageHeight - 12;
+    doc.setDrawColor(0, 229, 160);
+    doc.setLineWidth(0.3);
+    doc.line(margin, footerY - 4, pageWidth - margin, footerY - 4);
+    
+    doc.setFontSize(8);
+    doc.setTextColor(150, 150, 150);
+    doc.text("Generated with Jobly - AI-Powered Job Applications", margin, footerY);
+    
+    // Save PDF
+    const safeName = (tailoringJob.title || "CV").replace(/[^a-z0-9]/gi, "_").substring(0, 30);
+    const safeCompany = (tailoringJob.company || "Tailored").replace(/[^a-z0-9]/gi, "_").substring(0, 20);
+    doc.save(`CV-${safeName}-${safeCompany}.pdf`);
+  };
+ async function handleFilterChange(newFilter) {
+    if (newFilter === "all") {
+      setJobFilter("all");
+      setJobs(originalJobs);
+      return;
+    }
+    
+    if (!profile) return;
+    
+    setJobFilter(newFilter);
+    setLoading(true);
+    setError("");
+    
+    try {
+      const categoryProfile = {
+        ...profile,
+        job_titles: profile.job_titles.map(t => getCategorySearchTerms(newFilter, t))
+      };
+      
+      console.log(`🔍 Searching for ${newFilter} jobs...`);
+      
+      const [adzunaJobs, remotiveJobs] = await Promise.all([
+        fetchRealJobs(categoryProfile, country),
+        fetchRemotiveJobs(categoryProfile)
+      ]);
+      
+      console.log(`📊 ${newFilter}: ${adzunaJobs.length} Adzuna + ${remotiveJobs.length} Remotive`);
+      
+      const scoredAdzuna = adzunaJobs.map(j => ({
+        ...j,
+        matchScore: calculateRealMatchScore(profile.skills, profile.job_titles, j.title, j.jobText)
+      }));
+      const scoredRemotive = remotiveJobs.map(j => ({
+        ...j,
+        matchScore: calculateRealMatchScore(profile.skills, profile.job_titles, j.title, j.jobText)
+      }));
+      
+      scoredAdzuna.sort((a, b) => b.matchScore - a.matchScore);
+      scoredRemotive.sort((a, b) => b.matchScore - a.matchScore);
+      
+      const topJobs = [
+        ...scoredAdzuna.slice(0, 5),
+        ...scoredRemotive.slice(0, 5)
+      ];
+      
+      topJobs.sort((a, b) => b.matchScore - a.matchScore);
+      
+      if (topJobs.length === 0) {
+        setError(`No ${newFilter} jobs found. Try a different filter!`);
+      }
+      
+      setJobs(topJobs);
+      
+    } catch (err) {
+      console.error(`Filter ${newFilter} error:`, err);
+      setError(`Couldn't load ${newFilter} jobs. Try again.`);
+    } finally {
+      setLoading(false);
+    }
   }
-
+ 
   async function handleAnalyse() {
     if (!hasPaid && searchesUsed >= FREE_LIMIT) {
       setShowPaywall(true);
@@ -322,7 +494,7 @@ export default function App() {
       setProfile(result);
       
       // Fetch from BOTH Adzuna and JSearch in PARALLEL (super fast!)
-const const [adzunaJobs, jsearchJobs, remotiveJobs, museJobs, findworkJobs] = await Promise.all([
+const [adzunaJobs, jsearchJobs, remotiveJobs, museJobs, findworkJobs] = await Promise.all([
         fetchRealJobs(result, country),
         fetchJSearchJobs(result, country),
         fetchRemotiveJobs(result),
@@ -364,6 +536,7 @@ const const [adzunaJobs, jsearchJobs, remotiveJobs, museJobs, findworkJobs] = aw
       console.log(`✅ Final: Top ${scoredAdzuna.slice(0,4).length} Adzuna + Top ${scoredJSearch.slice(0,4).length} JSearch = ${topFromEach.length} best matches`);
       
       setJobs(topFromEach);
+      setOriginalJobs(topFromEach);
       setStep("result");
       const newCount = searchesUsed + 1;
       setSearchesUsed(newCount);
@@ -508,8 +681,8 @@ async function fetchFindworkJobs(profile) {
       
       <SignedOut>
         <div style={{ textAlign: "center", maxWidth: "500px", marginTop: "60px" }}>
-          <h1 style={{ fontSize: "3.5rem", color: "#00e5a0", marginBottom: "16px", letterSpacing: "-0.02em" }}>ApplyAI</h1>
-          <p style={{ color: "#e8eaf0", fontSize: "1.2rem", marginBottom: "12px" }}>Your AI-powered job hunting assistant</p>
+          <h1 style={{ fontSize: "3.5rem", color: "#00e5a0", marginBottom: "16px", letterSpacing: "-0.02em" }}>Jobly</h1>
+          <p style={{ color: "#e8eaf0", fontSize: "1.2rem", marginBottom: "12px" }}>AI-powered career platform — for job seekers and companies</p>
           <p style={{ color: "#6b7080", marginBottom: "40px", fontSize: "0.95rem", lineHeight: 1.6 }}>
             Upload your CV → AI finds matching jobs → AI tailors your CV for each role.<br/><br/>
             <span style={{ color: "#00e5a0", fontWeight: 600 }}>2 free searches</span> to get started, then {userPricing.symbol}{userPricing.amount} one-time for unlimited.
@@ -535,7 +708,7 @@ async function fetchFindworkJobs(profile) {
           <UserButton afterSignOutUrl="/" />
         </div>
         
-        <h1 style={{ fontSize: "2.5rem", color: "#00e5a0", marginBottom: "8px" }}>ApplyAI</h1>
+        <h1 style={{ fontSize: "2.5rem", color: "#00e5a0", marginBottom: "8px" }}>Jobly</h1>
         <p style={{ color: "#6b7080", marginBottom: "16px" }}>Upload your CV — let AI do the rest</p>
 
         <div style={{
@@ -604,11 +777,41 @@ async function fetchFindworkJobs(profile) {
 
             <div style={{ marginTop: "32px", paddingTop: "32px", borderTop: "1px solid #1e2130" }}>
               <div style={{ fontFamily: "monospace", fontSize: "0.75rem", color: "#00e5a0", letterSpacing: "0.12em", marginBottom: "8px" }}>// {jobs.length} MATCHING JOBS FOUND</div>
-              <h3 style={{ marginBottom: "20px", fontSize: "1.3rem" }}>🎯 Top Jobs For You</h3>
-              {jobs.map((job, i) => (
-                <div key={i} style={{ background: "#13151e", border: "1px solid #1e2130", borderRadius: "10px", padding: "16px 18px", marginBottom: "10px", display: "flex", alignItems: "center", gap: "16px" }}>
-                  <div style={{ width: "44px", height: "44px", background: "rgba(0,229,160,0.08)", borderRadius: "10px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.4rem", flexShrink: 0 }}>{job.logo}</div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
+              <h2 style={{ marginBottom: "20px", fontSize: "1.3rem" }}>🎯 Top Jobs For You</h2>
+{/* JOB TYPE FILTERS */}
+            <div style={{ display: "flex", gap: 8, justifyContent: "center", flexWrap: "wrap", marginBottom: 24 }}>
+              {[
+                { id: "all", label: "All Jobs", icon: "🌐" },
+                { id: "fulltime", label: "Full-time", icon: "💼" },
+                { id: "parttime", label: "Part-time", icon: "⏰" },
+                { id: "contract", label: "Contract", icon: "📝" },
+                { id: "internship", label: "Internship", icon: "🎓" },
+                { id: "remote", label: "Remote", icon: "🌍" }
+              ].map((filterOption) => (
+                <button
+                  key={filterOption.id}
+onClick={() => handleFilterChange(filterOption.id)}
+                  style={{
+                    padding: "8px 16px",
+                    borderRadius: 20,
+                    border: jobFilter === filterOption.id ? "2px solid #00e5a0" : "1px solid #2a2a3e",
+                    background: jobFilter === filterOption.id ? "rgba(0,229,160,0.15)" : "transparent",
+                    color: jobFilter === filterOption.id ? "#00e5a0" : "#aaa",
+                    cursor: "pointer",
+                    fontSize: 13,
+                    fontWeight: 600,
+                    transition: "all 0.2s"
+                  }}
+                >
+                  {filterOption.icon} {filterOption.label}
+                </button>
+              ))}
+            </div>
+            {jobs.filter(job => jobFilter === "all" || detectJobType(job) === jobFilter).map((job, idx) => (     
+                         <div key={idx} style={{ background: "#13151e", border: "1px solid #1e2130", borderRadius: "10px", padding: "16px 18px", marginBottom: "10px", display: "flex", alignItems: "center", gap: "16px" }}>
+<div style={{ width: "44px", height: "44px", background: "rgba(0,229,160,0.08)", borderRadius: "10px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "20px" }}>
+                  {job.source?.includes("Remotive") ? "🌍" : job.source?.includes("Muse") ? "🎭" : job.source?.includes("Findwork") ? "🔎" : job.source?.includes("JSearch") ? "🔍" : "💼"}
+                </div>                  <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontWeight: 700, fontSize: "0.95rem", marginBottom: "4px" }}>{job.title}</div>
                     <div style={{ fontFamily: "monospace", fontSize: "0.72rem", color: "#6b7080" }}>{job.source} · {job.company} · {job.location} · {job.salary}</div>
                   </div>
@@ -660,7 +863,7 @@ async function fetchFindworkJobs(profile) {
             <div onClick={(e) => e.stopPropagation()} style={{ background: "linear-gradient(135deg, #0f1117 0%, #131520 100%)", border: "1px solid #1e2130", borderRadius: "20px", padding: "48px 40px", maxWidth: "500px", width: "100%", textAlign: "center", position: "relative" }}>
               <button onClick={() => setShowPaywall(false)} style={{ position: "absolute", top: "16px", right: "16px", background: "transparent", color: "#6b7080", border: "none", fontSize: "1.5rem", cursor: "pointer" }}>✕</button>
               <div style={{ fontSize: "3rem", marginBottom: "16px" }}>🚀</div>
-              <h2 style={{ fontSize: "1.8rem", marginBottom: "12px", color: "#00e5a0" }}>You're loving ApplyAI!</h2>
+              <h2 style={{ fontSize: "1.8rem", marginBottom: "12px", color: "#00e5a0" }}>You're loving Jobly!</h2>
               <p style={{ color: "#6b7080", marginBottom: "32px", lineHeight: 1.6 }}>You've used all {FREE_LIMIT} free searches. Unlock unlimited access — pay once, use forever.</p>
               <div style={{ background: "#08090d", border: "2px solid #00e5a0", borderRadius: "16px", padding: "32px 24px", marginBottom: "24px" }}>
                 <div style={{ fontSize: "0.7rem", color: "#00e5a0", letterSpacing: "0.12em", marginBottom: "8px", fontFamily: "monospace" }}>✨ LIFETIME ACCESS · ONE-TIME PAYMENT</div>
@@ -683,7 +886,33 @@ async function fetchFindworkJobs(profile) {
     </div>
   );
 }
-
+function getCategorySearchTerms(category, baseRole) {
+  const role = baseRole || "professional";
+  
+  switch(category) {
+    case "internship":
+      return `${role} internship`;
+    case "parttime":
+      return `${role} part time`;
+    case "contract":
+      return `${role} contract freelance`;
+    case "remote":
+      return `${role} remote`;
+    case "fulltime":
+      return `${role} full time`;
+    default:
+      return role;
+  }
+}
+function detectJobType(job) {
+  const text = `${job.title || ""} ${job.description || ""} ${job.location || ""}`.toLowerCase();
+  
+  if (text.includes("intern") || text.includes("internship")) return "internship";
+  if (text.includes("contract") || text.includes("freelance") || text.includes("contractor")) return "contract";
+  if (text.includes("part-time") || text.includes("part time")) return "parttime";
+  if (text.includes("remote") || text.includes("worldwide") || text.includes("anywhere") || job.source?.includes("Remotive")) return "remote";
+  return "fulltime"; // default
+}
 function Row({ label, value }) {
   return (
     <div style={{ marginBottom: "16px" }}>
