@@ -681,7 +681,7 @@ async function fetchFindworkJobs(profile) {
       
       <SignedOut>
         <div style={{ textAlign: "center", maxWidth: "500px", marginTop: "60px" }}>
-          <h1 style={{ fontSize: "3.5rem", color: "#00e5a0", marginBottom: "16px", letterSpacing: "-0.02em" }}>Jobly</h1>
+          <img src="/jobly-logo.svg" alt="Jobly" style={{ height: "80px", marginBottom: "16px" }} />
           <p style={{ color: "#e8eaf0", fontSize: "1.2rem", marginBottom: "12px" }}>AI-powered career platform — for job seekers and companies</p>
           <p style={{ color: "#6b7080", marginBottom: "40px", fontSize: "0.95rem", lineHeight: 1.6 }}>
             Upload your CV → AI finds matching jobs → AI tailors your CV for each role.<br/><br/>
@@ -708,7 +708,7 @@ async function fetchFindworkJobs(profile) {
           <UserButton afterSignOutUrl="/" />
         </div>
         
-        <h1 style={{ fontSize: "2.5rem", color: "#00e5a0", marginBottom: "8px" }}>Jobly</h1>
+        <img src="/jobly-logo.svg" alt="Jobly" style={{ height: "60px", marginBottom: "8px" }} />
         <p style={{ color: "#6b7080", marginBottom: "16px" }}>Upload your CV — let AI do the rest</p>
 
         <div style={{
