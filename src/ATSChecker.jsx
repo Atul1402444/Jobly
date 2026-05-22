@@ -59,6 +59,29 @@ export default function ATSChecker() {
       }
 
       console.log("PDF extracted successfully, length:", fullText.length);
+
+      // Simple English-language detection
+      // Counts common English words vs total words
+      const englishWordsCommon = [
+        "the", "and", "of", "to", "in", "a", "is", "with", "for", "on",
+        "as", "at", "by", "an", "or", "be", "this", "from", "are", "have",
+        "experience", "work", "skills", "education", "company", "team",
+        "project", "data", "manage", "develop", "design", "lead", "build",
+        "support", "system", "client", "service", "report", "analysis"
+      ];
+      const words = fullText.toLowerCase().match(/\b[a-z]+\b/g) || [];
+      const englishMatches = words.filter(w => englishWordsCommon.includes(w)).length;
+      const englishRatio = words.length > 0 ? englishMatches / words.length : 0;
+
+      if (words.length > 50 && englishRatio < 0.05) {
+        // Less than 5% common English words = likely non-English CV
+        setError(
+          "🌐 This CV doesn't appear to be in English. Jobly currently works best with English-language CVs. Please upload an English version for accurate ATS analysis."
+        );
+        setCvFile(null);
+        return;
+      }
+
       setCvText(fullText);
     } catch (err) {
       console.error("PDF parse error:", err);
@@ -88,40 +111,43 @@ export default function ATSChecker() {
     setError("");
     setResults(null);
 
-    const prompt = `You are an expert ATS (Applicant Tracking System) analyzer and resume reviewer.
+    const prompt = `You are an expert ATS (Applicant Tracking System) analyzer and resume reviewer who provides professional, supportive guidance to job seekers.
 
 Analyze this CV against the job description and return ONLY valid JSON in this exact format:
 
 {
   "score": <number 0-100>,
   "verdict": "<one of: Excellent, Good, Needs Work, Poor>",
-  "summary": "<2-3 sentence summary of the match>",
+  "summary": "<2-3 sentence professional, constructive summary of the match>",
   "strongMatches": [
     {"keyword": "<keyword>", "context": "<where/how it appears in CV>"}
   ],
   "missingKeywords": [
-    {"keyword": "<missing keyword>", "importance": "<High/Medium/Low>", "suggestion": "<how to add it>"}
+    {"keyword": "<recommended keyword>", "importance": "<Critical/Important/Nice-to-have>", "suggestion": "<professional, encouraging suggestion on how to add it>"}
   ],
   "formatIssues": [
-    {"issue": "<format problem>", "severity": "<High/Medium/Low>", "fix": "<how to fix it>"}
+    {"issue": "<format observation>", "severity": "<Critical/Important/Nice-to-have>", "fix": "<professional, helpful fix recommendation>"}
   ],
   "topSuggestions": [
-    "<actionable suggestion 1>",
-    "<actionable suggestion 2>",
-    "<actionable suggestion 3>"
+    "<actionable, encouraging suggestion 1>",
+    "<actionable, encouraging suggestion 2>",
+    "<actionable, encouraging suggestion 3>"
   ],
   "skillsGap": [
-    {"skill": "<skill from JD missing in CV>", "priority": "<High/Medium/Low>"}
+    {"skill": "<skill from JD to consider adding>", "priority": "<Critical/Important/Nice-to-have>"}
   ]
 }
 
 Rules:
 - Score 90-100 = Excellent, 75-89 = Good, 50-74 = Needs Work, <50 = Poor
 - Find 5-10 strong matches if they exist
-- Find 5-10 missing keywords that are critical
-- Find 2-5 format issues (common ATS problems: dates, headings, tables, etc.)
-- Give 3-5 actionable suggestions
-- Be specific and helpful, not generic
+- Find 5-10 recommended keyword additions that would strengthen the CV
+- Find 2-5 format observations (common ATS considerations: dates, headings, tables, etc.)
+- Give 3-5 actionable, professional suggestions
+- TONE: Be supportive and constructive, like a career coach. Never use negative or harsh language.
+- Frame suggestions as opportunities for improvement, not failures.
+- Use professional language: "Consider adding...", "Recommended to include...", "Would strengthen the profile..."
+- Importance levels: Critical = must-have for this role, Important = significantly helps, Nice-to-have = optional polish
 - Return ONLY the JSON, no markdown, no extra text
 
 CV:
@@ -348,7 +374,7 @@ ${jobDescription}`;
                       Click to upload your CV
                     </div>
                     <div style={styles.uploadHint}>
-                      PDF only · Max 5MB
+                      PDF only · Max 5MB · English CVs work best
                     </div>
                   </>
                 )}
@@ -460,12 +486,12 @@ function ResultsView({
         <p style={styles.summary}>{results.summary}</p>
       </div>
 
-      {/* Grid: Matches + Missing */}
+      {/* Grid: Strengths + Recommendations */}
       <div className="ats-results-grid" style={styles.grid}>
-        {/* Strong Matches */}
+        {/* Your Strengths */}
         <div style={styles.card}>
           <h3 style={styles.cardTitle}>
-            ✅ Strong Matches ({results.strongMatches?.length || 0})
+            ✅ Your Strengths ({results.strongMatches?.length || 0})
           </h3>
           {results.strongMatches?.length > 0 ? (
             <ul style={styles.list}>
@@ -477,28 +503,30 @@ function ResultsView({
               ))}
             </ul>
           ) : (
-            <p style={styles.emptyState}>No strong matches found</p>
+            <p style={styles.emptyState}>Add more job-relevant skills to strengthen your profile</p>
           )}
         </div>
 
-        {/* Missing Keywords */}
+        {/* Recommended Additions */}
         <div style={styles.card}>
           <h3 style={styles.cardTitle}>
-            ❌ Missing Keywords ({results.missingKeywords?.length || 0})
+            💡 Recommended Additions ({results.missingKeywords?.length || 0})
           </h3>
           {results.missingKeywords?.length > 0 ? (
             <ul style={styles.list}>
               {results.missingKeywords.map((k, i) => (
                 <li key={i} style={styles.listItem}>
                   <div style={styles.keywordRow}>
-                    <strong style={{ color: "#ef4444" }}>{k.keyword}</strong>
+                    <strong style={{ color: "#0a66c2" }}>{k.keyword}</strong>
                     <span
                       style={{
                         ...styles.badge,
                         backgroundColor:
-                          k.importance === "High" ? "#fee2e2" : "#fef3c7",
+                          k.importance === "Critical" || k.importance === "High" ? "#fee2e2" :
+                          k.importance === "Important" || k.importance === "Medium" ? "#fef3c7" : "#e0f2fe",
                         color:
-                          k.importance === "High" ? "#991b1b" : "#92400e",
+                          k.importance === "Critical" || k.importance === "High" ? "#991b1b" :
+                          k.importance === "Important" || k.importance === "Medium" ? "#92400e" : "#075985",
                       }}
                     >
                       {k.importance}
@@ -509,16 +537,16 @@ function ResultsView({
               ))}
             </ul>
           ) : (
-            <p style={styles.emptyState}>Great! No critical keywords missing</p>
+            <p style={styles.emptyState}>Excellent! Your CV covers all key requirements for this role</p>
           )}
         </div>
       </div>
 
-      {/* Format Issues */}
+      {/* Format Observations */}
       {results.formatIssues?.length > 0 && (
         <div style={styles.card}>
           <h3 style={styles.cardTitle}>
-            ⚠️ Format Issues ({results.formatIssues.length})
+            📋 Format Observations ({results.formatIssues.length})
           </h3>
           <ul style={styles.list}>
             {results.formatIssues.map((f, i) => (
@@ -531,9 +559,9 @@ function ResultsView({
         </div>
       )}
 
-      {/* Top Suggestions */}
+      {/* Key Recommendations */}
       <div style={styles.card}>
-        <h3 style={styles.cardTitle}>💡 Top Suggestions</h3>
+        <h3 style={styles.cardTitle}>🎯 Key Recommendations</h3>
         <ol style={styles.suggestionsList}>
           {results.topSuggestions?.map((s, i) => (
             <li key={i} style={styles.suggestion}>
@@ -543,10 +571,10 @@ function ResultsView({
         </ol>
       </div>
 
-      {/* Skills Gap */}
+      {/* Skills to Consider */}
       {results.skillsGap?.length > 0 && (
         <div style={styles.card}>
-          <h3 style={styles.cardTitle}>📚 Skills Gap</h3>
+          <h3 style={styles.cardTitle}>📚 Skills to Consider Adding</h3>
           <div style={styles.skillsContainer}>
             {results.skillsGap.map((s, i) => (
               <span
@@ -554,17 +582,17 @@ function ResultsView({
                 style={{
                   ...styles.skillChip,
                   backgroundColor:
-                    s.priority === "High"
+                    s.priority === "Critical" || s.priority === "High"
                       ? "#fee2e2"
-                      : s.priority === "Medium"
+                      : s.priority === "Important" || s.priority === "Medium"
                       ? "#fef3c7"
-                      : "#e5e7eb",
+                      : "#e0f2fe",
                   color:
-                    s.priority === "High"
+                    s.priority === "Critical" || s.priority === "High"
                       ? "#991b1b"
-                      : s.priority === "Medium"
+                      : s.priority === "Important" || s.priority === "Medium"
                       ? "#92400e"
-                      : "#374151",
+                      : "#075985",
                 }}
               >
                 {s.skill}

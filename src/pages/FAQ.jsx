@@ -19,7 +19,7 @@ const faqs = [
       },
       {
         q: "What's the ATS Checker?",
-        a: "It's a free tool that analyzes your CV against a specific job description and gives you: an ATS score (0-100), missing keywords, format issues, strong matches, and specific improvement suggestions. Takes 30 seconds."
+        a: "It's a free tool that analyzes your CV against a specific job description and gives you: an ATS score (0-100), your strengths, recommended additions, format observations, and key recommendations to improve your match. Takes 30 seconds."
       }
     ]
   },
@@ -57,7 +57,11 @@ const faqs = [
       },
       {
         q: "What file formats can I upload?",
-        a: "We accept PDF and TXT files. PDFs work best — most professional CVs are in PDF format. Maximum file size: 10 MB."
+        a: "We accept PDF and TXT files. PDFs work best — most professional CVs are in PDF format. Maximum file size: 5MB."
+      },
+      {
+        q: "Does Jobly support non-English CVs?",
+        a: "Currently, Jobly works best with English-language CVs. Most ATS systems globally process English content, and our AI delivers the most accurate analysis in English. If you upload a non-English CV, you'll see a notice. We may add multi-language support in the future based on user demand."
       },
       {
         q: "Will my CV data be saved?",
