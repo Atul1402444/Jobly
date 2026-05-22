@@ -132,7 +132,7 @@ ${jobDescription}`;
 
     try {
       const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${GEMINI_API_KEY}`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -140,7 +140,7 @@ ${jobDescription}`;
             contents: [{ parts: [{ text: prompt }] }],
             generationConfig: {
               temperature: 0.3,
-              maxOutputTokens: 4000,
+              maxOutputTokens: 8000,
               responseMimeType: "application/json",
             },
           }),
@@ -171,7 +171,53 @@ ${jobDescription}`;
       }
 
       const cleanText = text.replace(/```json|```/g, "").trim();
-      const parsed = JSON.parse(cleanText);
+
+      // Robust JSON parsing with multi-layer fallback
+      let parsed;
+      try {
+        // Attempt 1: Parse as-is
+        parsed = JSON.parse(cleanText);
+      } catch (parseErr) {
+        console.warn("First parse failed, attempting recovery...", parseErr.message);
+
+        try {
+          // Attempt 2: Find JSON object boundaries and extract
+          const jsonMatch = cleanText.match(/\{[\s\S]*\}/);
+          if (jsonMatch) {
+            parsed = JSON.parse(jsonMatch[0]);
+          } else {
+            throw new Error("No JSON object found");
+          }
+        } catch (recoverErr) {
+          console.warn("Second parse failed, fixing common issues...", recoverErr.message);
+
+          try {
+            // Attempt 3: Fix common JSON issues
+            // - Remove trailing commas
+            // - Fix unescaped newlines in strings
+            // - Truncate at last valid closing brace
+            let fixed = cleanText
+              .replace(/,(\s*[}\]])/g, "$1") // remove trailing commas
+              .replace(/(\r\n|\n|\r)/g, " ") // remove newlines that break strings
+              .replace(/\t/g, " "); // remove tabs
+
+            // Find last balanced closing brace
+            const openCount = (fixed.match(/\{/g) || []).length;
+            const closeCount = (fixed.match(/\}/g) || []).length;
+            if (openCount > closeCount) {
+              // Add missing closing braces
+              fixed += "}".repeat(openCount - closeCount);
+            }
+
+            parsed = JSON.parse(fixed);
+          } catch (finalErr) {
+            console.error("All JSON parsing attempts failed:", finalErr);
+            console.error("Raw response:", cleanText);
+            throw new Error("JSON_PARSE_FAILED");
+          }
+        }
+      }
+
       setResults(parsed);
     } catch (err) {
       console.error("Analysis error:", err);
@@ -193,9 +239,9 @@ ${jobDescription}`;
         setError(
           "🤖 AI couldn't analyze this. Try with a more detailed job description."
         );
-      } else if (err.message.includes("JSON")) {
+      } else if (err.message === "JSON_PARSE_FAILED" || err.message.includes("JSON")) {
         setError(
-          "🤖 AI returned an unexpected response. Please try again."
+          "🤖 AI response was incomplete (possibly due to a long CV). Please try again — usually works on retry."
         );
       } else {
         setError(
