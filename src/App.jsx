@@ -484,6 +484,63 @@ export default function App() {
             <p style={{ fontSize: "0.9rem", color: "#737373" }}>
               <span style={{ color: "#0a66c2", fontWeight: 600 }}>2 free searches</span> — no credit card required.
             </p>
+
+            {/* OR Divider */}
+            <div style={{ display: "flex", alignItems: "center", margin: "32px 0 24px", gap: "16px" }}>
+              <div style={{ flex: 1, height: "1px", background: "#e5e5e5" }}></div>
+              <span style={{ fontSize: "0.85rem", color: "#737373", fontWeight: 600 }}>OR</span>
+              <div style={{ flex: 1, height: "1px", background: "#e5e5e5" }}></div>
+            </div>
+
+            {/* Free ATS Check CTA */}
+            <div
+              onClick={() => navigate("/ats-check")}
+              style={{
+                background: "linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)",
+                border: "1px solid #a7f3d0",
+                borderRadius: "16px",
+                padding: "20px 24px",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: "16px",
+                transition: "all 0.2s",
+                boxShadow: "0 1px 3px rgba(0,0,0,0.04)"
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = "translateY(-2px)";
+                e.currentTarget.style.boxShadow = "0 8px 20px rgba(16, 185, 129, 0.15)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = "translateY(0)";
+                e.currentTarget.style.boxShadow = "0 1px 3px rgba(0,0,0,0.04)";
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
+                <div style={{
+                  width: "44px",
+                  height: "44px",
+                  background: "#ffffff",
+                  borderRadius: "12px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: "20px",
+                  flexShrink: 0,
+                  border: "1px solid #a7f3d0"
+                }}>⚡</div>
+                <div>
+                  <div style={{ fontWeight: 700, fontSize: "1rem", color: "#065f46", marginBottom: "2px" }}>
+                    Not ready to sign up? Try Free ATS Check
+                  </div>
+                  <div style={{ fontSize: "0.85rem", color: "#047857" }}>
+                    Get your CV's ATS score in 30 seconds · No signup needed
+                  </div>
+                </div>
+              </div>
+              <div style={{ color: "#047857", fontSize: "1.5rem", fontWeight: 700, flexShrink: 0 }}>→</div>
+            </div>
           </div>
           <div style={{ background: "#fafafa", border: "1px solid #e5e5e5", borderRadius: "16px", padding: "32px", boxShadow: "0 20px 40px rgba(0,0,0,0.06)" }}>
             <div style={{ fontSize: "0.8rem", color: "#737373", fontWeight: 600, letterSpacing: "0.05em", marginBottom: "16px" }}>// 12 MATCHING JOBS FOUND</div>
