@@ -4,6 +4,7 @@
 
 import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import Footer from "./pages/Footer.jsx";
 
 const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 
@@ -374,9 +375,7 @@ ${jobDescription}`;
       </main>
 
       {/* Footer */}
-      <footer style={styles.footer}>
-        <p>Made with ❤️ by Jobly · Helping job seekers since 2026</p>
-      </footer>
+      <Footer />
     </div>
   );
 }
@@ -416,7 +415,7 @@ function ResultsView({
       </div>
 
       {/* Grid: Matches + Missing */}
-      <div style={styles.grid}>
+      <div className="ats-results-grid" style={styles.grid}>
         {/* Strong Matches */}
         <div style={styles.card}>
           <h3 style={styles.cardTitle}>
@@ -529,45 +528,124 @@ function ResultsView({
         </div>
       )}
 
-      {/* The Money CTA - This is the conversion magnet */}
-      <div style={styles.ctaCard}>
-        <h2 style={styles.ctaTitle}>
-          Want to FIX all of this automatically?
-        </h2>
-        <p style={styles.ctaSubtitle}>
-          Jobly Pro uses AI to rewrite your CV for any job in 30 seconds.
-          Instead of just telling you what's wrong, we FIX it.
-        </p>
+      {/* The Money CTA - Two-tier pricing */}
+      <div style={styles.pricingSection}>
+        <div style={styles.pricingHeader}>
+          <h2 style={styles.pricingMainTitle}>
+            Want to FIX all of this?
+          </h2>
+          <p style={styles.pricingMainSubtitle}>
+            Our AI rewrites your CV with all missing keywords, fixes format issues, and makes it ATS-perfect in 30 seconds.
+          </p>
+        </div>
 
-        <div style={styles.ctaFeatures}>
-          <div style={styles.ctaFeature}>
-            <span style={styles.ctaCheck}>✓</span>
-            <span>AI-tailored CV for every job in 30 seconds</span>
+        <div className="ats-pricing-grid" style={styles.pricingGrid}>
+          {/* One-Time Option */}
+          <div style={styles.pricingCard}>
+            <div style={styles.pricingBadge}>ONE-TIME</div>
+            <div style={styles.pricingIcon}>⚡</div>
+            <h3 style={styles.pricingCardTitle}>Fix This CV</h3>
+            <div style={styles.pricingPrice}>
+              <span style={styles.priceCurrency}>₹</span>
+              <span style={styles.priceAmount}>99</span>
+            </div>
+            <p style={styles.pricingCardSubtitle}>Perfect for one application</p>
+
+            <ul style={styles.featureList}>
+              <li style={styles.featureItem}>
+                <span style={styles.featureCheck}>✓</span>
+                <span>AI rewrites this exact CV</span>
+              </li>
+              <li style={styles.featureItem}>
+                <span style={styles.featureCheck}>✓</span>
+                <span>Adds all missing keywords naturally</span>
+              </li>
+              <li style={styles.featureItem}>
+                <span style={styles.featureCheck}>✓</span>
+                <span>Fixes all format issues</span>
+              </li>
+              <li style={styles.featureItem}>
+                <span style={styles.featureCheck}>✓</span>
+                <span>Delivered in 30 seconds</span>
+              </li>
+              <li style={styles.featureItem}>
+                <span style={styles.featureCheck}>✓</span>
+                <span>PDF download</span>
+              </li>
+            </ul>
+
+            <button
+              style={styles.pricingButtonOneTime}
+              onClick={() => navigate("/?pay=99")}
+            >
+              Get Tailored CV — ₹99 →
+            </button>
+            <p style={styles.pricingFootnote}>Save ₹4,901 vs CV writer</p>
           </div>
-          <div style={styles.ctaFeature}>
-            <span style={styles.ctaCheck}>✓</span>
-            <span>Auto-add missing keywords (naturally, not stuffed)</span>
-          </div>
-          <div style={styles.ctaFeature}>
-            <span style={styles.ctaCheck}>✓</span>
-            <span>Fix format issues automatically</span>
-          </div>
-          <div style={styles.ctaFeature}>
-            <span style={styles.ctaCheck}>✓</span>
-            <span>Apply to 100+ jobs without rewriting your CV</span>
+
+          {/* Subscription Option - HIGHLIGHTED */}
+          <div style={styles.pricingCardFeatured}>
+            <div style={styles.popularBadge}>⭐ MOST POPULAR</div>
+            <div style={styles.pricingBadgeFeatured}>UNLIMITED</div>
+            <div style={styles.pricingIcon}>💎</div>
+            <h3 style={styles.pricingCardTitleFeatured}>Jobly Pro</h3>
+            <div style={styles.pricingPrice}>
+              <span style={styles.priceCurrencyFeatured}>₹</span>
+              <span style={styles.priceAmountFeatured}>299</span>
+              <span style={styles.pricePeriod}>/month</span>
+            </div>
+            <p style={styles.pricingCardSubtitleFeatured}>For active job hunters</p>
+
+            <ul style={styles.featureListFeatured}>
+              <li style={styles.featureItem}>
+                <span style={styles.featureCheckFeatured}>✓</span>
+                <span><strong>Unlimited</strong> CV tailoring</span>
+              </li>
+              <li style={styles.featureItem}>
+                <span style={styles.featureCheckFeatured}>✓</span>
+                <span>Apply to 100+ jobs without rewriting</span>
+              </li>
+              <li style={styles.featureItem}>
+                <span style={styles.featureCheckFeatured}>✓</span>
+                <span>Save all your CV versions</span>
+              </li>
+              <li style={styles.featureItem}>
+                <span style={styles.featureCheckFeatured}>✓</span>
+                <span>AI job search across 20+ countries</span>
+              </li>
+              <li style={styles.featureItem}>
+                <span style={styles.featureCheckFeatured}>✓</span>
+                <span>Priority support</span>
+              </li>
+            </ul>
+
+            <button
+              style={styles.pricingButtonFeatured}
+              onClick={() => navigate("/?pay=299")}
+            >
+              Subscribe ₹299/mo →
+            </button>
+            <p style={styles.pricingFootnoteFeatured}>
+              💡 Just 3 applications = cheaper than ₹99/CV
+            </p>
           </div>
         </div>
 
-        <button
-          style={styles.ctaButton}
-          onClick={() => navigate("/")}
-        >
-          Try Jobly Pro Free →
-        </button>
-
-        <p style={styles.ctaPriceNote}>
-          Save ₹5,000+ vs a CV writer · No credit card required
-        </p>
+        {/* Trust Strip */}
+        <div style={styles.trustStrip}>
+          <div style={styles.trustItem}>
+            <span style={styles.trustIcon}>🔒</span>
+            <span>Secure UPI payment</span>
+          </div>
+          <div style={styles.trustItem}>
+            <span style={styles.trustIcon}>⚡</span>
+            <span>Delivered in 30 seconds</span>
+          </div>
+          <div style={styles.trustItem}>
+            <span style={styles.trustIcon}>💯</span>
+            <span>Money-back guarantee</span>
+          </div>
+        </div>
       </div>
 
       {/* Try Again */}
@@ -1027,6 +1105,297 @@ const styles = {
     fontSize: 13,
     marginTop: 16,
     opacity: 0.9,
+  },
+
+  // PRICING SECTION - Two-tier
+  pricingSection: {
+    marginBottom: 20,
+  },
+
+  pricingHeader: {
+    textAlign: "center",
+    marginBottom: 32,
+  },
+
+  pricingMainTitle: {
+    fontSize: 36,
+    fontWeight: 700,
+    margin: "0 0 12px",
+    color: "#111827",
+    fontFamily: "'Source Serif 4', Georgia, serif",
+    lineHeight: 1.2,
+  },
+
+  pricingMainSubtitle: {
+    fontSize: 16,
+    color: "#6b7280",
+    margin: 0,
+    lineHeight: 1.6,
+    maxWidth: 600,
+    marginLeft: "auto",
+    marginRight: "auto",
+  },
+
+  pricingGrid: {
+    display: "grid",
+    gridTemplateColumns: "1fr 1fr",
+    gap: 20,
+    marginBottom: 24,
+  },
+
+  pricingCard: {
+    backgroundColor: "#ffffff",
+    borderRadius: 16,
+    padding: 32,
+    border: "2px solid #e5e7eb",
+    position: "relative",
+    display: "flex",
+    flexDirection: "column",
+  },
+
+  pricingCardFeatured: {
+    background: "linear-gradient(135deg, #0a66c2 0%, #0073e6 100%)",
+    borderRadius: 16,
+    padding: 32,
+    color: "#ffffff",
+    position: "relative",
+    display: "flex",
+    flexDirection: "column",
+    boxShadow: "0 10px 30px rgba(10, 102, 194, 0.3)",
+    transform: "scale(1.02)",
+  },
+
+  popularBadge: {
+    position: "absolute",
+    top: -12,
+    left: "50%",
+    transform: "translateX(-50%)",
+    backgroundColor: "#fbbf24",
+    color: "#78350f",
+    padding: "4px 16px",
+    borderRadius: 12,
+    fontSize: 11,
+    fontWeight: 700,
+    letterSpacing: "0.05em",
+  },
+
+  pricingBadge: {
+    display: "inline-block",
+    backgroundColor: "#f3f4f6",
+    color: "#374151",
+    padding: "4px 10px",
+    borderRadius: 12,
+    fontSize: 11,
+    fontWeight: 700,
+    letterSpacing: "0.05em",
+    marginBottom: 16,
+    alignSelf: "flex-start",
+  },
+
+  pricingBadgeFeatured: {
+    display: "inline-block",
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    color: "#ffffff",
+    padding: "4px 10px",
+    borderRadius: 12,
+    fontSize: 11,
+    fontWeight: 700,
+    letterSpacing: "0.05em",
+    marginBottom: 16,
+    alignSelf: "flex-start",
+  },
+
+  pricingIcon: {
+    fontSize: 36,
+    marginBottom: 12,
+  },
+
+  pricingCardTitle: {
+    fontSize: 24,
+    fontWeight: 700,
+    margin: "0 0 8px",
+    color: "#111827",
+  },
+
+  pricingCardTitleFeatured: {
+    fontSize: 24,
+    fontWeight: 700,
+    margin: "0 0 8px",
+    color: "#ffffff",
+  },
+
+  pricingPrice: {
+    display: "flex",
+    alignItems: "baseline",
+    marginBottom: 6,
+  },
+
+  priceCurrency: {
+    fontSize: 28,
+    fontWeight: 600,
+    color: "#111827",
+  },
+
+  priceCurrencyFeatured: {
+    fontSize: 28,
+    fontWeight: 600,
+    color: "#ffffff",
+  },
+
+  priceAmount: {
+    fontSize: 56,
+    fontWeight: 700,
+    color: "#111827",
+    lineHeight: 1,
+    fontFamily: "'Source Serif 4', Georgia, serif",
+  },
+
+  priceAmountFeatured: {
+    fontSize: 56,
+    fontWeight: 700,
+    color: "#ffffff",
+    lineHeight: 1,
+    fontFamily: "'Source Serif 4', Georgia, serif",
+  },
+
+  pricePeriod: {
+    fontSize: 16,
+    color: "rgba(255, 255, 255, 0.8)",
+    marginLeft: 6,
+  },
+
+  pricingCardSubtitle: {
+    fontSize: 14,
+    color: "#6b7280",
+    margin: "0 0 24px",
+  },
+
+  pricingCardSubtitleFeatured: {
+    fontSize: 14,
+    color: "rgba(255, 255, 255, 0.9)",
+    margin: "0 0 24px",
+  },
+
+  featureList: {
+    listStyle: "none",
+    padding: 0,
+    margin: "0 0 24px",
+    display: "flex",
+    flexDirection: "column",
+    gap: 10,
+    flex: 1,
+  },
+
+  featureListFeatured: {
+    listStyle: "none",
+    padding: 0,
+    margin: "0 0 24px",
+    display: "flex",
+    flexDirection: "column",
+    gap: 10,
+    flex: 1,
+  },
+
+  featureItem: {
+    display: "flex",
+    alignItems: "center",
+    gap: 10,
+    fontSize: 14,
+    lineHeight: 1.5,
+  },
+
+  featureCheck: {
+    width: 20,
+    height: 20,
+    backgroundColor: "#dcfce7",
+    color: "#15803d",
+    borderRadius: "50%",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: 12,
+    fontWeight: 700,
+    flexShrink: 0,
+  },
+
+  featureCheckFeatured: {
+    width: 20,
+    height: 20,
+    backgroundColor: "rgba(255, 255, 255, 0.25)",
+    color: "#ffffff",
+    borderRadius: "50%",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: 12,
+    fontWeight: 700,
+    flexShrink: 0,
+  },
+
+  pricingButtonOneTime: {
+    width: "100%",
+    padding: "14px 24px",
+    backgroundColor: "#111827",
+    color: "#ffffff",
+    border: "none",
+    borderRadius: 8,
+    fontSize: 15,
+    fontWeight: 700,
+    cursor: "pointer",
+    transition: "all 0.2s",
+  },
+
+  pricingButtonFeatured: {
+    width: "100%",
+    padding: "14px 24px",
+    backgroundColor: "#ffffff",
+    color: "#0a66c2",
+    border: "none",
+    borderRadius: 8,
+    fontSize: 15,
+    fontWeight: 700,
+    cursor: "pointer",
+    transition: "all 0.2s",
+    boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+  },
+
+  pricingFootnote: {
+    fontSize: 12,
+    color: "#15803d",
+    textAlign: "center",
+    margin: "12px 0 0",
+    fontWeight: 600,
+  },
+
+  pricingFootnoteFeatured: {
+    fontSize: 12,
+    color: "rgba(255, 255, 255, 0.95)",
+    textAlign: "center",
+    margin: "12px 0 0",
+    fontWeight: 600,
+  },
+
+  trustStrip: {
+    display: "flex",
+    justifyContent: "center",
+    gap: 32,
+    padding: "16px",
+    backgroundColor: "#f9fafb",
+    borderRadius: 12,
+    flexWrap: "wrap",
+  },
+
+  trustItem: {
+    display: "flex",
+    alignItems: "center",
+    gap: 8,
+    fontSize: 13,
+    color: "#6b7280",
+    fontWeight: 500,
+  },
+
+  trustIcon: {
+    fontSize: 16,
   },
 
   tryAgain: {

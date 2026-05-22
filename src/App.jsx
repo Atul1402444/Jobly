@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { useNavigate } from "react-router-dom";
 import { SignedIn, SignedOut, SignInButton, SignUpButton, UserButton, useUser } from "@clerk/clerk-react";
+import Footer from "./pages/Footer.jsx";
 import * as pdfjsLib from "pdfjs-dist/build/pdf";
 pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
   "pdfjs-dist/build/pdf.worker.min.mjs",
@@ -261,6 +262,21 @@ export default function App() {
   const [loaded, setLoaded] = useState(false);
   const [jobFilter, setJobFilter] = useState("all");
 
+  // ATS Checker payment modal state
+  const [showAtsPayment, setShowAtsPayment] = useState(null); // null | 99 | 299
+
+  // Detect payment param from URL (when user clicks pricing button on /ats-check)
+  if (typeof window !== "undefined" && showAtsPayment === null) {
+    const params = new URLSearchParams(window.location.search);
+    const payParam = params.get("pay");
+    if (payParam === "99" || payParam === "299") {
+      setShowAtsPayment(parseInt(payParam));
+      // Clean URL
+      window.history.replaceState({}, "", "/");
+    }
+  }
+
+
   if (user?.id && !loaded) {
     const saved = localStorage.getItem(`searches_${user.id}`);
     if (saved) setSearchesUsed(parseInt(saved));
@@ -422,6 +438,160 @@ export default function App() {
   return (
     <div style={{ minHeight: "100vh", background: "#ffffff", color: "#0a0a0a", fontFamily: "Inter, -apple-system, sans-serif" }}>
 
+      {/* ============ ATS PAYMENT MODAL ============ */}
+      {showAtsPayment && (
+        <div
+          onClick={() => setShowAtsPayment(null)}
+          style={{
+            position: "fixed",
+            top: 0, left: 0, right: 0, bottom: 0,
+            background: "rgba(0,0,0,0.6)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 1000,
+            padding: "20px"
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: "#ffffff",
+              borderRadius: "20px",
+              padding: "40px",
+              maxWidth: "480px",
+              width: "100%",
+              boxShadow: "0 20px 60px rgba(0,0,0,0.3)",
+              position: "relative",
+              maxHeight: "90vh",
+              overflowY: "auto"
+            }}
+          >
+            <button
+              onClick={() => setShowAtsPayment(null)}
+              style={{
+                position: "absolute",
+                top: 16, right: 16,
+                background: "none",
+                border: "none",
+                fontSize: "24px",
+                cursor: "pointer",
+                color: "#9ca3af",
+                width: 32, height: 32,
+                display: "flex", alignItems: "center", justifyContent: "center"
+              }}
+            >×</button>
+
+            {/* Header */}
+            <div style={{ textAlign: "center", marginBottom: "24px" }}>
+              <div style={{ fontSize: "48px", marginBottom: "8px" }}>
+                {showAtsPayment === 99 ? "⚡" : "💎"}
+              </div>
+              <h2 style={{ fontSize: "26px", fontWeight: 700, margin: "0 0 8px", color: "#111827", fontFamily: "'Source Serif 4', Georgia, serif" }}>
+                {showAtsPayment === 99 ? "Get Your Tailored CV" : "Subscribe to Jobly Pro"}
+              </h2>
+              <p style={{ fontSize: "15px", color: "#6b7280", margin: 0 }}>
+                {showAtsPayment === 99
+                  ? "₹99 one-time · Delivered in 30 minutes"
+                  : "₹299/month · Cancel anytime"}
+              </p>
+            </div>
+
+            {/* Payment Box */}
+            <div style={{
+              background: "linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)",
+              border: "2px solid #93c5fd",
+              borderRadius: "12px",
+              padding: "20px",
+              marginBottom: "20px"
+            }}>
+              <div style={{ fontSize: "13px", fontWeight: 700, color: "#1e40af", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "12px" }}>
+                Step 1: Pay via UPI
+              </div>
+
+              <div style={{ background: "#ffffff", borderRadius: "8px", padding: "16px", marginBottom: "12px" }}>
+                <div style={{ fontSize: "12px", color: "#6b7280", marginBottom: "4px" }}>UPI ID</div>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                  <span style={{ fontSize: "16px", fontWeight: 700, color: "#111827", fontFamily: "monospace" }}>
+                    atul1402444@paytm
+                  </span>
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText("atul1402444@paytm");
+                      alert("UPI ID copied!");
+                    }}
+                    style={{
+                      background: "#0a66c2",
+                      color: "#ffffff",
+                      border: "none",
+                      padding: "6px 12px",
+                      borderRadius: "6px",
+                      fontSize: "12px",
+                      fontWeight: 600,
+                      cursor: "pointer"
+                    }}
+                  >Copy</button>
+                </div>
+              </div>
+
+              <div style={{ background: "#ffffff", borderRadius: "8px", padding: "16px" }}>
+                <div style={{ fontSize: "12px", color: "#6b7280", marginBottom: "4px" }}>Amount</div>
+                <div style={{ fontSize: "24px", fontWeight: 700, color: "#111827" }}>
+                  ₹{showAtsPayment}{showAtsPayment === 299 ? "/month" : ""}
+                </div>
+              </div>
+            </div>
+
+            {/* WhatsApp Instructions */}
+            <div style={{
+              background: "#dcfce7",
+              border: "2px solid #86efac",
+              borderRadius: "12px",
+              padding: "20px",
+              marginBottom: "20px"
+            }}>
+              <div style={{ fontSize: "13px", fontWeight: 700, color: "#15803d", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "12px" }}>
+                Step 2: Send Payment Screenshot
+              </div>
+
+              <p style={{ fontSize: "14px", color: "#166534", margin: "0 0 12px", lineHeight: 1.5 }}>
+                After paying, WhatsApp your payment screenshot + CV + job description to:
+              </p>
+
+              <a
+                href={`https://wa.me/91XXXXXXXXXX?text=Hi%20Atul%2C%20I%20paid%20%E2%82%B9${showAtsPayment}%20for%20${showAtsPayment === 99 ? "tailored%20CV" : "Jobly%20Pro%20subscription"}.%20Here%27s%20my%20payment%20screenshot.`}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "8px",
+                  background: "#25D366",
+                  color: "#ffffff",
+                  padding: "12px",
+                  borderRadius: "8px",
+                  fontSize: "15px",
+                  fontWeight: 700,
+                  textDecoration: "none"
+                }}
+              >
+                💬 Open WhatsApp
+              </a>
+
+              <p style={{ fontSize: "12px", color: "#15803d", margin: "10px 0 0", textAlign: "center" }}>
+                You'll receive your tailored CV within 30 minutes
+              </p>
+            </div>
+
+            {/* Trust note */}
+            <p style={{ fontSize: "12px", color: "#9ca3af", textAlign: "center", margin: 0, lineHeight: 1.5 }}>
+              🔒 100% money-back guarantee · We're a real founder, not a faceless company
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* ============ SIGNED OUT — LANDING PAGE ============ */}
       <SignedOut>
         <nav style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "20px 48px", borderBottom: "1px solid #e5e5e5", maxWidth: "1280px", margin: "0 auto" }}>
@@ -457,7 +627,7 @@ export default function App() {
               <button style={{ background: "transparent", color: "#0a0a0a", padding: "8px 16px", fontSize: "0.95rem", fontWeight: 500, border: "none", cursor: "pointer" }}>Sign In</button>
             </SignInButton>
             <SignUpButton mode="modal">
-              <button style={{ background: "#0a66c2", color: "#ffffff", padding: "10px 20px", borderRadius: "24px", fontSize: "0.95rem", fontWeight: 600, border: "none", cursor: "pointer" }}>Try Jobly Free</button>
+              <button className="clerk-mobile-hide" style={{ background: "#0a66c2", color: "#ffffff", padding: "10px 20px", borderRadius: "24px", fontSize: "0.95rem", fontWeight: 600, border: "none", cursor: "pointer" }}>Try Jobly Free</button>
             </SignUpButton>
           </div>
         </nav>
@@ -580,9 +750,7 @@ export default function App() {
           </div>
         </section>
 
-        <footer style={{ padding: "48px", borderTop: "1px solid #e5e5e5", textAlign: "center", color: "#737373", fontSize: "0.9rem" }}>
-          © 2026 Jobly · AI-powered career platform
-        </footer>
+        <Footer />
       </SignedOut>
 
       {/* ============ SIGNED IN — DASHBOARD ============ */}

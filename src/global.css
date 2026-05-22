@@ -1,0 +1,489 @@
+/* ============================================
+   JOBLY — GLOBAL CSS RESET + MOBILE OVERRIDES
+   ============================================
+   This file fixes mobile responsiveness without
+   touching inline styles in App.jsx
+============================================ */
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+  width: 100%;
+}
+
+/* Prevent iOS auto-zoom on inputs */
+input, textarea, select {
+  font-size: 16px !important;
+}
+
+/* ============================================
+   MOBILE BREAKPOINT: ≤ 768px
+   ============================================ */
+
+@media (max-width: 768px) {
+
+  /* ---------- NAV / HEADER ---------- */
+  nav {
+    padding: 16px 20px !important;
+    flex-wrap: wrap !important;
+    gap: 12px !important;
+  }
+
+  nav img {
+    height: 28px !important;
+  }
+
+  /* Hide "Try Jobly Free" sign up button on mobile (too cramped) */
+  nav .clerk-mobile-hide {
+    display: none !important;
+  }
+
+  /* Stack header buttons cleanly */
+  nav > div {
+    gap: 8px !important;
+    flex-wrap: wrap !important;
+    justify-content: flex-end !important;
+  }
+
+  /* Header buttons - smaller on mobile */
+  nav button {
+    padding: 8px 12px !important;
+    font-size: 0.8rem !important;
+    white-space: nowrap !important;
+  }
+
+  /* ---------- HERO SECTION ---------- */
+  section {
+    padding: 40px 20px !important;
+    grid-template-columns: 1fr !important;
+    gap: 32px !important;
+  }
+
+  /* Hero headline - fix word breaking */
+  section h1 {
+    font-size: 36px !important;
+    line-height: 1.15 !important;
+    word-break: normal !important;
+    overflow-wrap: break-word !important;
+    hyphens: none !important;
+  }
+
+  section h2 {
+    font-size: 28px !important;
+    line-height: 1.2 !important;
+  }
+
+  section p {
+    font-size: 1rem !important;
+    line-height: 1.6 !important;
+  }
+
+  /* CTA buttons - prevent text wrapping */
+  section button {
+    white-space: nowrap !important;
+    padding: 14px 24px !important;
+    font-size: 0.95rem !important;
+  }
+
+  /* Hero button container - stack on mobile */
+  section > div > div:has(button) {
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    gap: 10px !important;
+  }
+
+  /* Job match cards container */
+  section > div:last-child {
+    padding: 20px !important;
+  }
+
+  /* Individual job cards */
+  section > div:last-child > div {
+    padding: 12px !important;
+    gap: 8px !important;
+  }
+
+  /* ---------- "HOW IT WORKS" 3-col grid ---------- */
+  section > div > div[style*="grid-template-columns"] {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+
+  /* ---------- FOOTER ---------- */
+  footer {
+    padding: 24px 16px !important;
+    font-size: 0.8rem !important;
+  }
+
+  /* ---------- ATS CHECKER PAGE ---------- */
+  .ats-container {
+    padding: 20px !important;
+  }
+
+  .ats-pricing-grid {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+
+  .ats-results-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* ---------- PAYMENT MODAL ---------- */
+  .modal-content {
+    padding: 20px !important;
+    max-width: 95vw !important;
+    margin: 10px !important;
+  }
+}
+
+/* ============================================
+   SMALLER MOBILE: ≤ 480px (iPhone SE etc)
+   ============================================ */
+
+@media (max-width: 480px) {
+
+  nav {
+    padding: 12px 16px !important;
+  }
+
+  /* Even smaller buttons on tiny screens */
+  nav button {
+    padding: 6px 10px !important;
+    font-size: 0.75rem !important;
+  }
+
+  /* Hide "ATS Check" emoji on very small screens to save space */
+  nav button .emoji-mobile-hide {
+    display: none !important;
+  }
+
+  section h1 {
+    font-size: 30px !important;
+  }
+
+  section h2 {
+    font-size: 24px !important;
+  }
+}
+
+/* ============================================
+   FOOTER STYLES (NEW)
+   ============================================ */
+
+.site-footer {
+  background: #0f172a;
+  color: #cbd5e1;
+  padding: 48px 24px 24px;
+  margin-top: 80px;
+}
+
+.site-footer-grid {
+  max-width: 1280px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: 48px;
+}
+
+@media (max-width: 768px) {
+  .site-footer-grid {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+}
+
+.site-footer h3 {
+  color: #f8fafc;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 16px;
+}
+
+.site-footer a {
+  display: block;
+  color: #cbd5e1;
+  text-decoration: none;
+  font-size: 0.9rem;
+  margin-bottom: 10px;
+  transition: color 0.15s;
+}
+
+.site-footer a:hover {
+  color: #60a5fa;
+}
+
+.site-footer-brand h2 {
+  color: #ffffff;
+  font-family: 'Source Serif 4', Georgia, serif;
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0 0 12px;
+}
+
+.site-footer-brand p {
+  color: #94a3b8;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  margin: 0 0 16px;
+  max-width: 360px;
+}
+
+.site-footer-bottom {
+  max-width: 1280px;
+  margin: 32px auto 0;
+  padding-top: 24px;
+  border-top: 1px solid #1e293b;
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  font-size: 0.85rem;
+  color: #94a3b8;
+}
+
+@media (max-width: 768px) {
+  .site-footer-bottom {
+    flex-direction: column;
+    text-align: center;
+  }
+}
+
+/* ============================================
+   LEGAL PAGES STYLES
+   ============================================ */
+
+.legal-page {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 64px 24px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color: #0f172a;
+  line-height: 1.7;
+}
+
+@media (max-width: 768px) {
+  .legal-page {
+    padding: 32px 20px;
+  }
+}
+
+.legal-page h1 {
+  font-family: 'Source Serif 4', Georgia, serif;
+  font-size: 2.5rem;
+  font-weight: 600;
+  margin: 0 0 8px;
+  letter-spacing: -0.02em;
+}
+
+@media (max-width: 768px) {
+  .legal-page h1 {
+    font-size: 1.875rem;
+  }
+}
+
+.legal-page .updated {
+  color: #64748b;
+  font-size: 0.9rem;
+  margin: 0 0 40px;
+}
+
+.legal-page h2 {
+  font-family: 'Source Serif 4', Georgia, serif;
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 40px 0 16px;
+  color: #0f172a;
+}
+
+.legal-page h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 24px 0 8px;
+  color: #1e293b;
+}
+
+.legal-page p {
+  margin: 0 0 16px;
+  color: #334155;
+}
+
+.legal-page ul {
+  margin: 0 0 16px;
+  padding-left: 24px;
+}
+
+.legal-page li {
+  margin-bottom: 8px;
+  color: #334155;
+}
+
+.legal-page a {
+  color: #0a66c2;
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.15s;
+}
+
+.legal-page a:hover {
+  border-bottom-color: #0a66c2;
+}
+
+.legal-page .back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #64748b;
+  font-size: 0.9rem;
+  margin-bottom: 32px;
+  border-bottom: none;
+}
+
+.legal-page .back-link:hover {
+  color: #0a66c2;
+}
+
+.legal-page .info-box {
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+  border-radius: 12px;
+  padding: 20px;
+  margin: 24px 0;
+}
+
+.legal-page .info-box p {
+  margin: 0;
+  color: #075985;
+}
+
+.legal-page .warning-box {
+  background: #fef3c7;
+  border: 1px solid #fcd34d;
+  border-radius: 12px;
+  padding: 20px;
+  margin: 24px 0;
+}
+
+.legal-page .warning-box p {
+  margin: 0;
+  color: #78350f;
+}
+
+/* ============================================
+   CONTACT FORM STYLES
+   ============================================ */
+
+.contact-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+  margin-top: 24px;
+}
+
+@media (max-width: 768px) {
+  .contact-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.contact-card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 28px;
+  text-align: center;
+  transition: all 0.2s;
+}
+
+.contact-card:hover {
+  border-color: #0a66c2;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(10, 102, 194, 0.08);
+}
+
+.contact-card .icon {
+  font-size: 36px;
+  margin-bottom: 12px;
+}
+
+.contact-card h3 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 0 0 8px;
+  color: #111827;
+}
+
+.contact-card p {
+  margin: 0 0 16px;
+  color: #6b7280;
+  font-size: 0.9rem;
+}
+
+.contact-card a {
+  display: inline-block;
+  background: #0a66c2;
+  color: #ffffff;
+  padding: 10px 20px;
+  border-radius: 24px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-decoration: none;
+  transition: background 0.15s;
+}
+
+.contact-card a:hover {
+  background: #084c92;
+  border-bottom: none;
+}
+
+/* ============================================
+   FAQ STYLES
+   ============================================ */
+
+.faq-item {
+  border-bottom: 1px solid #e5e7eb;
+  padding: 20px 0;
+}
+
+.faq-item summary {
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 1.05rem;
+  color: #111827;
+  list-style: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.faq-item summary::-webkit-details-marker {
+  display: none;
+}
+
+.faq-item summary::after {
+  content: "+";
+  font-size: 1.5rem;
+  color: #0a66c2;
+  font-weight: 400;
+  margin-left: 12px;
+}
+
+.faq-item[open] summary::after {
+  content: "−";
+}
+
+.faq-item p {
+  margin: 12px 0 0;
+  color: #475569;
+  line-height: 1.7;
+}
