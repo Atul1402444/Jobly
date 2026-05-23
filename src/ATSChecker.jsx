@@ -296,6 +296,8 @@ ${jobDescription}`;
           </div>
         ) : (
           <ResultsView
+            cvBase64={cvBase64}
+            jobDescription={jobDescription}
             results={results}
             onReset={() => { setResults(null); setCvFile(null); setCvBase64(""); setJobDescription(""); }}
             getScoreColor={getScoreColor}
@@ -310,7 +312,7 @@ ${jobDescription}`;
   );
 }
 
-function ResultsView({ results, onReset, getScoreColor, navigate }) {
+function ResultsView({ results, onReset, getScoreColor, navigate, cvBase64, jobDescription }) {
   const scoreColor = getScoreColor(results.score);
 
   return (
@@ -421,7 +423,7 @@ function ResultsView({ results, onReset, getScoreColor, navigate }) {
                 <li key={i} style={styles.featureItem}><span style={styles.featureCheck}>✓</span><span>{f}</span></li>
               ))}
             </ul>
-            <button style={styles.pricingButtonOneTime} onClick={() => navigate("/?pay=99")}>Get Tailored CV — ₹99 →</button>
+            <button style={styles.pricingButtonOneTime} onClick={() => { sessionStorage.setItem("jobly_cv_base64", cvBase64); sessionStorage.setItem("jobly_job_description", jobDescription); sessionStorage.setItem("jobly_ats_analysis", JSON.stringify(results)); navigate("/payment-success"); }}>Get Tailored CV — ₹99 →</button>
             <p style={styles.pricingFootnote}>Save ₹4,901 vs CV writer</p>
           </div>
 

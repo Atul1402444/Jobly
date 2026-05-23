@@ -12,6 +12,7 @@ import Terms from './pages/Terms.jsx'
 import Refunds from './pages/Refunds.jsx'
 import About from './pages/About.jsx'
 import FAQ from './pages/FAQ.jsx'
+import PaymentSuccess from './pages/PaymentSuccess.jsx'
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
 
@@ -32,6 +33,7 @@ createRoot(document.getElementById('root')).render(
           <Route path="/refunds" element={<Refunds />} />
           <Route path="/about" element={<About />} />
           <Route path="/faq" element={<FAQ />} />
+          <Route path="/payment-success" element={<PaymentSuccess />} />
         </Routes>
       </BrowserRouter>
     </ClerkProvider>
