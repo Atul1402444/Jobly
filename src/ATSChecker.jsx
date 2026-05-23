@@ -44,7 +44,7 @@ export default function ATSChecker() {
       pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorker.default;
 
       const arrayBuffer = await file.arrayBuffer();
-      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer, useWorkerFetch: false, isEvalSupported: false, useSystemFonts: true }).promise;
       let fullText = "";
 
       for (let i = 1; i <= pdf.numPages; i++) {
