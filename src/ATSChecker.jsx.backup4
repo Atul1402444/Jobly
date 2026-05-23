@@ -40,7 +40,8 @@ export default function ATSChecker() {
     // Extract text from PDF using pdf.js (legacy build for Vite compatibility)
     try {
       const pdfjsLib = await import("pdfjs-dist/legacy/build/pdf.mjs");
-      pdfjsLib.GlobalWorkerOptions.workerSrc = "";
+      const pdfjsWorker = await import("pdfjs-dist/legacy/build/pdf.worker.mjs?url");
+      pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorker.default;
 
       const arrayBuffer = await file.arrayBuffer();
       const pdf = await pdfjsLib.getDocument({ data: arrayBuffer, useWorkerFetch: false, isEvalSupported: false, useSystemFonts: true }).promise;
