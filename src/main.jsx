@@ -2,6 +2,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { ClerkProvider } from '@clerk/clerk-react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { Analytics } from '@vercel/analytics/react'
 import './index.css'
 import './global.css'
 import App from './App.jsx'
@@ -34,6 +35,7 @@ createRoot(document.getElementById('root')).render(
           <Route path="/faq" element={<FAQ />} />
         </Routes>
       </BrowserRouter>
+      <Analytics />
     </ClerkProvider>
   </StrictMode>,
 )
