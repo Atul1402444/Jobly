@@ -63,7 +63,8 @@ const userPricing = PRICING[detectUserCountry()] || { symbol: "$", amount: 6 };
 
 async function extractTextFromPDF(file) {
   const arrayBuffer = await file.arrayBuffer();
-  const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+  pdfjsLib.GlobalWorkerOptions.workerSrc = "";
+  const pdf = await pdfjsLib.getDocument({ data: arrayBuffer, useWorkerFetch: false, isEvalSupported: false, useSystemFonts: true }).promise;
   let fullText = "";
   for (let i = 1; i <= pdf.numPages; i++) {
     const page = await pdf.getPage(i);
