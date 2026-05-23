@@ -5,10 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { SignedIn, SignedOut, SignInButton, SignUpButton, UserButton, useUser } from "@clerk/clerk-react";
 import Footer from "./pages/Footer.jsx";
 import * as pdfjsLib from "pdfjs-dist/build/pdf";
-pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
-  "pdfjs-dist/build/pdf.worker.min.mjs",
-  import.meta.url
-).toString();
+pdfjsLib.GlobalWorkerOptions.workerSrc = "";
 
 const GEMINI_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 const ADZUNA_APP_ID = import.meta.env.VITE_ADZUNA_APP_ID;
@@ -63,7 +60,6 @@ const userPricing = PRICING[detectUserCountry()] || { symbol: "$", amount: 6 };
 
 async function extractTextFromPDF(file) {
   const arrayBuffer = await file.arrayBuffer();
-  pdfjsLib.GlobalWorkerOptions.workerSrc = "";
   const pdf = await pdfjsLib.getDocument({ data: arrayBuffer, useWorkerFetch: false, isEvalSupported: false, useSystemFonts: true }).promise;
   let fullText = "";
   for (let i = 1; i <= pdf.numPages; i++) {
