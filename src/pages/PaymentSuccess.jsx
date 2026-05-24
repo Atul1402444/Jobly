@@ -10,7 +10,7 @@ export default function PaymentSuccess() {
   const navigate = useNavigate();
   const cvPreviewRef = useRef(null);
 
-  const [status, setStatus] = useState("loading"); // loading | success | error
+  const [status, setStatus] = useState("loading");
   const [tailoredCV, setTailoredCV] = useState(null);
   const [error, setError] = useState("");
   const [downloadStarted, setDownloadStarted] = useState(false);
@@ -22,7 +22,6 @@ export default function PaymentSuccess() {
 
   const generateTailoredCV = async () => {
     try {
-      // Retrieve user's CV + JD from sessionStorage (set by ATSChecker before payment)
       const cvBase64 = sessionStorage.getItem("jobly_cv_base64");
       const jobDescription = sessionStorage.getItem("jobly_job_description");
       const atsAnalysisStr = sessionStorage.getItem("jobly_ats_analysis");
@@ -35,7 +34,6 @@ export default function PaymentSuccess() {
 
       const atsAnalysis = atsAnalysisStr ? JSON.parse(atsAnalysisStr) : null;
 
-      // Call our backend
       const response = await fetch("/api/tailor-cv", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -48,9 +46,7 @@ export default function PaymentSuccess() {
       }
 
       const data = await response.json();
-      if (!data.cv) {
-        throw new Error("No CV in response");
-      }
+      if (!data.cv) throw new Error("No CV in response");
 
       setTailoredCV(data.cv);
       setStatus("success");
@@ -63,21 +59,16 @@ export default function PaymentSuccess() {
 
   const handleDownload = () => {
     if (!cvPreviewRef.current) return;
-
     setDownloadStarted(true);
-
     const opt = {
-      margin: [10, 10, 10, 10],
+      margin: [0, 0, 0, 0],
       filename: `${tailoredCV.fullName?.replace(/\s+/g, "_") || "Tailored"}_CV_Jobly.pdf`,
       image: { type: "jpeg", quality: 0.98 },
       html2canvas: { scale: 2, useCORS: true },
       jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
     };
-
     html2pdf().from(cvPreviewRef.current).set(opt).save();
   };
-
-  // ============ RENDER STATES ============
 
   if (status === "loading") {
     return (
@@ -93,18 +84,10 @@ export default function PaymentSuccess() {
             <span style={styles.spinnerText}>Generating your tailored CV...</span>
           </div>
           <div style={styles.progressSteps}>
-            <div style={{ ...styles.step, ...styles.stepActive }}>
-              <span>✓</span> Payment confirmed
-            </div>
-            <div style={{ ...styles.step, ...styles.stepActive }}>
-              <span>⟳</span> Analyzing job requirements
-            </div>
-            <div style={styles.step}>
-              <span>○</span> Tailoring your CV
-            </div>
-            <div style={styles.step}>
-              <span>○</span> Ready to download
-            </div>
+            <div style={{ ...styles.step, ...styles.stepActive }}><span>✓</span> Payment confirmed</div>
+            <div style={{ ...styles.step, ...styles.stepActive }}><span>⟳</span> Analyzing job requirements</div>
+            <div style={styles.step}><span>○</span> Tailoring your CV</div>
+            <div style={styles.step}><span>○</span> Ready to download</div>
           </div>
         </div>
       </div>
@@ -119,18 +102,14 @@ export default function PaymentSuccess() {
           <h1 style={styles.h1}>Something went wrong</h1>
           <p style={styles.subtitle}>{error}</p>
           <p style={styles.supportNote}>
-            Your payment is safe. Please WhatsApp us on{" "}
-            <strong>+91-XXXXXXXXXX</strong> with your order details and we'll deliver your tailored CV manually within 1 hour.
+            Your payment is safe. Please WhatsApp us on <strong>+91-XXXXXXXXXX</strong> with your order details and we'll deliver your tailored CV manually within 1 hour.
           </p>
-          <button style={styles.primaryBtn} onClick={() => navigate("/ats-check")}>
-            Try Again
-          </button>
+          <button style={styles.primaryBtn} onClick={() => navigate("/ats-check")}>Try Again</button>
         </div>
       </div>
     );
   }
 
-  // SUCCESS STATE — show the CV preview + download button
   return (
     <div style={styles.page}>
       <div style={styles.successBanner}>
@@ -153,61 +132,68 @@ export default function PaymentSuccess() {
       </div>
 
       <div style={styles.footer}>
-        <p>
-          Need changes? Reply to your confirmation email or WhatsApp us. We'll revise within 1 hour.
-        </p>
-        <button style={styles.secondaryBtn} onClick={() => navigate("/")}>
-          ← Back to Jobly
-        </button>
+        <p>Need changes? WhatsApp us and we'll revise within 1 hour.</p>
+        <button style={styles.secondaryBtn} onClick={() => navigate("/")}>← Back to Jobly</button>
       </div>
     </div>
   );
 }
 
-// ============ CV TEMPLATE COMPONENT ============
-// This is the visual layout that becomes the PDF.
-// Clean, professional, ATS-friendly single-column layout.
-
 function CVTemplate({ cv }) {
+  const tagline = cv.experience?.[0]?.title || "";
+  const skills = cv.skills || [];
+
   return (
     <div style={cvStyles.container}>
-      {/* HEADER */}
       <header style={cvStyles.header}>
         <h1 style={cvStyles.name}>{cv.fullName || "Your Name"}</h1>
+        {tagline && <div style={cvStyles.tagline}>{tagline}</div>}
+        <div style={cvStyles.accentLine}></div>
         <div style={cvStyles.contact}>
-          {cv.email && <span>{cv.email}</span>}
-          {cv.phone && <span> · {cv.phone}</span>}
-          {cv.location && <span> · {cv.location}</span>}
-          {cv.linkedin && <span> · {cv.linkedin}</span>}
+          {cv.email && <span style={cvStyles.contactItem}>✉ {cv.email}</span>}
+          {cv.phone && <span style={cvStyles.contactItem}>☎ {cv.phone}</span>}
+          {cv.location && <span style={cvStyles.contactItem}>📍 {cv.location}</span>}
+          {cv.linkedin && <span style={cvStyles.contactItem}>🔗 {cv.linkedin}</span>}
         </div>
       </header>
 
-      {/* SUMMARY */}
       {cv.summary && (
         <section style={cvStyles.section}>
-          <h2 style={cvStyles.sectionTitle}>Professional Summary</h2>
+          <h2 style={cvStyles.sectionTitle}>
+            <span style={cvStyles.sectionBar}></span>
+            Professional Summary
+          </h2>
           <p style={cvStyles.summary}>{cv.summary}</p>
         </section>
       )}
 
-      {/* SKILLS */}
-      {cv.skills?.length > 0 && (
+      {skills.length > 0 && (
         <section style={cvStyles.section}>
-          <h2 style={cvStyles.sectionTitle}>Core Skills</h2>
-          <div style={cvStyles.skillsRow}>{cv.skills.join(" · ")}</div>
+          <h2 style={cvStyles.sectionTitle}>
+            <span style={cvStyles.sectionBar}></span>
+            Core Skills
+          </h2>
+          <div style={cvStyles.skillsContainer}>
+            {skills.map((skill, i) => <span key={i} style={cvStyles.skillPill}>{skill}</span>)}
+          </div>
         </section>
       )}
 
-      {/* EXPERIENCE */}
       {cv.experience?.length > 0 && (
         <section style={cvStyles.section}>
-          <h2 style={cvStyles.sectionTitle}>Professional Experience</h2>
+          <h2 style={cvStyles.sectionTitle}>
+            <span style={cvStyles.sectionBar}></span>
+            Professional Experience
+          </h2>
           {cv.experience.map((exp, i) => (
             <div key={i} style={cvStyles.expItem}>
               <div style={cvStyles.expHeader}>
-                <div>
+                <div style={cvStyles.expHeaderLeft}>
                   <div style={cvStyles.jobTitle}>{exp.title}</div>
-                  <div style={cvStyles.company}>{exp.company}{exp.location ? ` · ${exp.location}` : ""}</div>
+                  <div style={cvStyles.company}>
+                    <span style={cvStyles.companyName}>{exp.company}</span>
+                    {exp.location ? <span style={cvStyles.location}> · {exp.location}</span> : ""}
+                  </div>
                 </div>
                 <div style={cvStyles.dates}>{exp.startDate} – {exp.endDate}</div>
               </div>
@@ -221,17 +207,19 @@ function CVTemplate({ cv }) {
         </section>
       )}
 
-      {/* PROJECTS */}
       {cv.projects?.length > 0 && (
         <section style={cvStyles.section}>
-          <h2 style={cvStyles.sectionTitle}>Projects</h2>
+          <h2 style={cvStyles.sectionTitle}>
+            <span style={cvStyles.sectionBar}></span>
+            Projects
+          </h2>
           {cv.projects.map((p, i) => (
             <div key={i} style={cvStyles.projectItem}>
               <div style={cvStyles.projectName}>{p.name}</div>
               <div style={cvStyles.projectDesc}>{p.description}</div>
               {p.technologies?.length > 0 && (
                 <div style={cvStyles.projectTech}>
-                  <strong>Tech:</strong> {p.technologies.join(", ")}
+                  <strong style={cvStyles.techLabel}>Tech:</strong> {p.technologies.join(" · ")}
                 </div>
               )}
             </div>
@@ -239,16 +227,21 @@ function CVTemplate({ cv }) {
         </section>
       )}
 
-      {/* EDUCATION */}
       {cv.education?.length > 0 && (
         <section style={cvStyles.section}>
-          <h2 style={cvStyles.sectionTitle}>Education</h2>
+          <h2 style={cvStyles.sectionTitle}>
+            <span style={cvStyles.sectionBar}></span>
+            Education
+          </h2>
           {cv.education.map((edu, i) => (
             <div key={i} style={cvStyles.eduItem}>
               <div style={cvStyles.expHeader}>
-                <div>
+                <div style={cvStyles.expHeaderLeft}>
                   <div style={cvStyles.degree}>{edu.degree}</div>
-                  <div style={cvStyles.institution}>{edu.institution}{edu.location ? ` · ${edu.location}` : ""}</div>
+                  <div style={cvStyles.company}>
+                    <span style={cvStyles.companyName}>{edu.institution}</span>
+                    {edu.location ? <span style={cvStyles.location}> · {edu.location}</span> : ""}
+                  </div>
                 </div>
                 <div style={cvStyles.dates}>{edu.startDate} – {edu.endDate}</div>
               </div>
@@ -258,243 +251,101 @@ function CVTemplate({ cv }) {
         </section>
       )}
 
-      {/* CERTIFICATIONS */}
       {cv.certifications?.length > 0 && (
         <section style={cvStyles.section}>
-          <h2 style={cvStyles.sectionTitle}>Certifications</h2>
-          {cv.certifications.map((c, i) => (
-            <div key={i} style={cvStyles.certItem}>
-              <strong>{c.name}</strong> — {c.issuer} {c.year && `(${c.year})`}
-            </div>
-          ))}
+          <h2 style={cvStyles.sectionTitle}>
+            <span style={cvStyles.sectionBar}></span>
+            Certifications
+          </h2>
+          <div style={cvStyles.certsContainer}>
+            {cv.certifications.map((c, i) => (
+              <div key={i} style={cvStyles.certItem}>
+                <div style={cvStyles.certName}>{c.name}</div>
+                <div style={cvStyles.certIssuer}>{c.issuer} {c.year && `· ${c.year}`}</div>
+              </div>
+            ))}
+          </div>
         </section>
       )}
 
-      {/* SUBTLE FOOTER — your marketing hook */}
       <div style={cvStyles.cvFooter}>
-        ✨ Tailored with Jobly · joblyai-eight.vercel.app
+        <span style={cvStyles.footerBrand}>✨ Tailored with Jobly</span>
+        <span style={cvStyles.footerUrl}>joblyai-eight.vercel.app</span>
       </div>
     </div>
   );
 }
 
-// ============ PAGE STYLES ============
-
 const styles = {
-  page: {
-    minHeight: "100vh",
-    backgroundColor: "#f3f4f6",
-    fontFamily: "Inter, -apple-system, BlinkMacSystemFont, sans-serif",
-    padding: "40px 20px",
-  },
-  centerCard: {
-    maxWidth: 600,
-    margin: "60px auto",
-    backgroundColor: "#ffffff",
-    borderRadius: 16,
-    padding: 48,
-    textAlign: "center",
-    boxShadow: "0 4px 20px rgba(0,0,0,0.06)",
-  },
-  successIcon: {
-    width: 64,
-    height: 64,
-    borderRadius: "50%",
-    backgroundColor: "#dcfce7",
-    color: "#15803d",
-    fontSize: 32,
-    fontWeight: 700,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    margin: "0 auto 20px",
-  },
-  h1: {
-    fontSize: 28,
-    fontWeight: 700,
-    color: "#111827",
-    margin: "0 0 12px",
-    fontFamily: "'Source Serif 4', Georgia, serif",
-  },
+  page: { minHeight: "100vh", backgroundColor: "#f3f4f6", fontFamily: "Inter, -apple-system, BlinkMacSystemFont, sans-serif", padding: "40px 20px" },
+  centerCard: { maxWidth: 600, margin: "60px auto", backgroundColor: "#ffffff", borderRadius: 16, padding: 48, textAlign: "center", boxShadow: "0 4px 20px rgba(0,0,0,0.06)" },
+  successIcon: { width: 64, height: 64, borderRadius: "50%", backgroundColor: "#dcfce7", color: "#15803d", fontSize: 32, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px" },
+  h1: { fontSize: 28, fontWeight: 700, color: "#111827", margin: "0 0 12px", fontFamily: "'Source Serif 4', Georgia, serif" },
   subtitle: { fontSize: 16, color: "#6b7280", margin: "0 0 32px", lineHeight: 1.6 },
-  spinnerContainer: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 12,
-    marginBottom: 32,
-  },
-  spinner: {
-    width: 20,
-    height: 20,
-    border: "2px solid #e5e7eb",
-    borderTopColor: "#0a66c2",
-    borderRadius: "50%",
-    animation: "spin 0.8s linear infinite",
-  },
+  spinnerContainer: { display: "flex", alignItems: "center", justifyContent: "center", gap: 12, marginBottom: 32 },
+  spinner: { width: 20, height: 20, border: "2px solid #e5e7eb", borderTopColor: "#0a66c2", borderRadius: "50%", animation: "spin 0.8s linear infinite" },
   spinnerText: { fontSize: 14, color: "#6b7280" },
-  progressSteps: {
-    textAlign: "left",
-    maxWidth: 320,
-    margin: "0 auto",
-    display: "flex",
-    flexDirection: "column",
-    gap: 10,
-  },
-  step: {
-    display: "flex",
-    alignItems: "center",
-    gap: 10,
-    fontSize: 14,
-    color: "#9ca3af",
-  },
+  progressSteps: { textAlign: "left", maxWidth: 320, margin: "0 auto", display: "flex", flexDirection: "column", gap: 10 },
+  step: { display: "flex", alignItems: "center", gap: 10, fontSize: 14, color: "#9ca3af" },
   stepActive: { color: "#0a66c2", fontWeight: 600 },
-  supportNote: {
-    fontSize: 13,
-    color: "#6b7280",
-    backgroundColor: "#f9fafb",
-    padding: 16,
-    borderRadius: 8,
-    margin: "20px 0",
-    lineHeight: 1.6,
-  },
-  primaryBtn: {
-    padding: "14px 28px",
-    backgroundColor: "#0a66c2",
-    color: "#ffffff",
-    border: "none",
-    borderRadius: 8,
-    fontSize: 15,
-    fontWeight: 600,
-    cursor: "pointer",
-  },
-  secondaryBtn: {
-    padding: "10px 20px",
-    backgroundColor: "transparent",
-    color: "#0a66c2",
-    border: "1px solid #0a66c2",
-    borderRadius: 8,
-    fontSize: 14,
-    fontWeight: 600,
-    cursor: "pointer",
-    marginTop: 12,
-  },
-  successBanner: {
-    maxWidth: 850,
-    margin: "0 auto 24px",
-    background: "linear-gradient(135deg, #0a66c2 0%, #0073e6 100%)",
-    color: "#ffffff",
-    padding: "20px 28px",
-    borderRadius: 12,
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    flexWrap: "wrap",
-    gap: 12,
-    boxShadow: "0 10px 30px rgba(10,102,194,0.25)",
-  },
+  supportNote: { fontSize: 13, color: "#6b7280", backgroundColor: "#f9fafb", padding: 16, borderRadius: 8, margin: "20px 0", lineHeight: 1.6 },
+  primaryBtn: { padding: "14px 28px", backgroundColor: "#0a66c2", color: "#ffffff", border: "none", borderRadius: 8, fontSize: 15, fontWeight: 600, cursor: "pointer" },
+  secondaryBtn: { padding: "10px 20px", backgroundColor: "transparent", color: "#0a66c2", border: "1px solid #0a66c2", borderRadius: 8, fontSize: 14, fontWeight: 600, cursor: "pointer", marginTop: 12 },
+  successBanner: { maxWidth: 850, margin: "0 auto 24px", background: "linear-gradient(135deg, #0a66c2 0%, #0073e6 100%)", color: "#ffffff", padding: "20px 28px", borderRadius: 12, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12, boxShadow: "0 10px 30px rgba(10,102,194,0.25)" },
   bannerLeft: { display: "flex", alignItems: "center", gap: 16 },
   bannerIcon: { fontSize: 32 },
   bannerTitle: { fontSize: 18, fontWeight: 700 },
   bannerSubtitle: { fontSize: 13, opacity: 0.9, marginTop: 2 },
-  downloadBtn: {
-    padding: "12px 24px",
-    backgroundColor: "#ffffff",
-    color: "#0a66c2",
-    border: "none",
-    borderRadius: 8,
-    fontSize: 15,
-    fontWeight: 700,
-    cursor: "pointer",
-    boxShadow: "0 4px 14px rgba(0,0,0,0.15)",
-  },
-  previewWrapper: {
-    maxWidth: 850,
-    margin: "0 auto",
-    backgroundColor: "#e5e7eb",
-    padding: 24,
-    borderRadius: 12,
-  },
-  cvDocument: {
-    backgroundColor: "#ffffff",
-    minHeight: "1100px",
-    padding: "60px 70px",
-    boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
-  },
-  footer: {
-    maxWidth: 850,
-    margin: "32px auto 0",
-    textAlign: "center",
-    color: "#6b7280",
-    fontSize: 14,
-  },
+  downloadBtn: { padding: "12px 24px", backgroundColor: "#ffffff", color: "#0a66c2", border: "none", borderRadius: 8, fontSize: 15, fontWeight: 700, cursor: "pointer", boxShadow: "0 4px 14px rgba(0,0,0,0.15)" },
+  previewWrapper: { maxWidth: 850, margin: "0 auto", backgroundColor: "#e5e7eb", padding: 24, borderRadius: 12 },
+  cvDocument: { backgroundColor: "#ffffff", minHeight: "1100px", boxShadow: "0 4px 20px rgba(0,0,0,0.08)" },
+  footer: { maxWidth: 850, margin: "32px auto 0", textAlign: "center", color: "#6b7280", fontSize: 14 },
 };
 
-// ============ CV TEMPLATE STYLES ============
-// These render the CV layout. Keep ATS-friendly: single column, no graphics, clear hierarchy.
+const BRAND_BLUE = "#0a66c2";
+const BRAND_BLUE_DARK = "#084d92";
+const TEXT_DARK = "#1a1a1a";
+const TEXT_MEDIUM = "#444";
+const TEXT_MUTED = "#6b7280";
+const BORDER_LIGHT = "#e5e7eb";
 
 const cvStyles = {
-  container: {
-    fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
-    color: "#1a1a1a",
-    fontSize: 11,
-    lineHeight: 1.5,
-  },
-  header: {
-    textAlign: "center",
-    marginBottom: 24,
-    paddingBottom: 18,
-    borderBottom: "2px solid #1a1a1a",
-  },
-  name: {
-    fontSize: 28,
-    fontWeight: 700,
-    margin: "0 0 8px",
-    letterSpacing: "1px",
-    textTransform: "uppercase",
-  },
-  contact: { fontSize: 11, color: "#444" },
+  container: { fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", color: TEXT_DARK, fontSize: 10.5, lineHeight: 1.55, padding: "50px 55px 35px" },
+  header: { textAlign: "left", marginBottom: 22, paddingBottom: 16 },
+  name: { fontSize: 30, fontWeight: 800, margin: "0 0 4px", letterSpacing: "0.5px", color: TEXT_DARK, fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", textTransform: "uppercase" },
+  tagline: { fontSize: 13, color: BRAND_BLUE, fontWeight: 600, letterSpacing: "0.3px", marginBottom: 10 },
+  accentLine: { height: 3, width: 60, backgroundColor: BRAND_BLUE, marginBottom: 12, borderRadius: 2 },
+  contact: { fontSize: 10, color: TEXT_MEDIUM, display: "flex", flexWrap: "wrap", gap: 14 },
+  contactItem: { whiteSpace: "nowrap" },
   section: { marginBottom: 18 },
-  sectionTitle: {
-    fontSize: 13,
-    fontWeight: 700,
-    textTransform: "uppercase",
-    letterSpacing: "1.5px",
-    color: "#1a1a1a",
-    margin: "0 0 10px",
-    paddingBottom: 4,
-    borderBottom: "1px solid #d1d5db",
-  },
-  summary: { fontSize: 11, lineHeight: 1.6, margin: 0, color: "#333" },
-  skillsRow: { fontSize: 11, lineHeight: 1.6 },
+  sectionTitle: { fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: "1.5px", color: BRAND_BLUE_DARK, margin: "0 0 10px", display: "flex", alignItems: "center", gap: 10, paddingBottom: 6, borderBottom: `1.5px solid ${BORDER_LIGHT}` },
+  sectionBar: { display: "inline-block", width: 4, height: 14, backgroundColor: BRAND_BLUE, borderRadius: 2 },
+  summary: { fontSize: 11, lineHeight: 1.65, margin: 0, color: "#2a2a2a", textAlign: "justify" },
+  skillsContainer: { display: "flex", flexWrap: "wrap", gap: "6px 8px" },
+  skillPill: { fontSize: 10, padding: "4px 10px", backgroundColor: "#eef4fb", color: BRAND_BLUE_DARK, borderRadius: 4, fontWeight: 500, border: `1px solid #d4e3f4` },
   expItem: { marginBottom: 14 },
-  expHeader: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-    marginBottom: 4,
-  },
-  jobTitle: { fontSize: 12, fontWeight: 700 },
-  company: { fontSize: 11, fontStyle: "italic", color: "#444" },
-  dates: { fontSize: 10, color: "#666", whiteSpace: "nowrap", marginLeft: 12 },
-  bullets: { margin: "6px 0 0", paddingLeft: 18 },
-  bullet: { fontSize: 11, lineHeight: 1.55, marginBottom: 3 },
+  expHeader: { display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 4 },
+  expHeaderLeft: { flex: 1 },
+  jobTitle: { fontSize: 12.5, fontWeight: 700, color: TEXT_DARK, marginBottom: 1 },
+  company: { fontSize: 11, color: TEXT_MEDIUM },
+  companyName: { color: BRAND_BLUE, fontWeight: 600 },
+  location: { color: TEXT_MUTED, fontStyle: "italic" },
+  dates: { fontSize: 10, color: TEXT_MUTED, whiteSpace: "nowrap", marginLeft: 12, fontWeight: 500, backgroundColor: "#f9fafb", padding: "2px 8px", borderRadius: 3 },
+  bullets: { margin: "6px 0 0", paddingLeft: 16 },
+  bullet: { fontSize: 10.5, lineHeight: 1.6, marginBottom: 3, color: "#2a2a2a" },
   projectItem: { marginBottom: 10 },
-  projectName: { fontSize: 12, fontWeight: 700 },
-  projectDesc: { fontSize: 11, margin: "3px 0", color: "#333" },
-  projectTech: { fontSize: 10, color: "#666", fontStyle: "italic" },
+  projectName: { fontSize: 12, fontWeight: 700, color: TEXT_DARK, marginBottom: 2 },
+  projectDesc: { fontSize: 10.5, margin: "2px 0", color: "#2a2a2a", lineHeight: 1.55 },
+  projectTech: { fontSize: 10, color: TEXT_MUTED, marginTop: 3 },
+  techLabel: { color: BRAND_BLUE, fontWeight: 600 },
   eduItem: { marginBottom: 10 },
-  degree: { fontSize: 12, fontWeight: 700 },
-  institution: { fontSize: 11, fontStyle: "italic", color: "#444" },
-  eduDetails: { fontSize: 10, color: "#666", marginTop: 3 },
-  certItem: { fontSize: 11, marginBottom: 5 },
-  cvFooter: {
-    marginTop: 30,
-    paddingTop: 12,
-    borderTop: "1px solid #e5e7eb",
-    fontSize: 9,
-    color: "#9ca3af",
-    textAlign: "center",
-    fontStyle: "italic",
-  },
+  degree: { fontSize: 12, fontWeight: 700, color: TEXT_DARK, marginBottom: 1 },
+  eduDetails: { fontSize: 10, color: TEXT_MUTED, marginTop: 3, fontStyle: "italic" },
+  certsContainer: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px 20px" },
+  certItem: { padding: "8px 12px", backgroundColor: "#f9fbfd", borderLeft: `3px solid ${BRAND_BLUE}`, borderRadius: "0 4px 4px 0" },
+  certName: { fontSize: 11, fontWeight: 600, color: TEXT_DARK, marginBottom: 2 },
+  certIssuer: { fontSize: 9.5, color: TEXT_MUTED },
+  cvFooter: { marginTop: 28, paddingTop: 12, borderTop: `1px solid ${BORDER_LIGHT}`, fontSize: 9, color: TEXT_MUTED, textAlign: "center", fontStyle: "italic", display: "flex", justifyContent: "center", alignItems: "center", gap: 10 },
+  footerBrand: { color: BRAND_BLUE, fontWeight: 600 },
+  footerUrl: { color: TEXT_MUTED },
 };
