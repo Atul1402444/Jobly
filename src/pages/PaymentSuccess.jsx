@@ -297,8 +297,8 @@ const styles = {
   bannerTitle: { fontSize: 18, fontWeight: 700 },
   bannerSubtitle: { fontSize: 13, opacity: 0.9, marginTop: 2 },
   downloadBtn: { padding: "12px 24px", backgroundColor: "#ffffff", color: "#0a66c2", border: "none", borderRadius: 8, fontSize: 15, fontWeight: 700, cursor: "pointer", boxShadow: "0 4px 14px rgba(0,0,0,0.15)" },
-  previewWrapper: { maxWidth: 850, margin: "0 auto", backgroundColor: "#e5e7eb", padding: 24, borderRadius: 12 },
-  cvDocument: { backgroundColor: "#ffffff", minHeight: "1100px", boxShadow: "0 4px 20px rgba(0,0,0,0.08)" },
+ previewWrapper: { maxWidth: 850, margin: "0 auto", backgroundColor: "#e5e7eb", padding: 24, borderRadius: 12, overflowX: "auto", WebkitOverflowScrolling: "touch" },
+   cvDocument: { backgroundColor: "#ffffff", minHeight: "1100px", width: "800px", maxWidth: "800px", boxShadow: "0 4px 20px rgba(0,0,0,0.08)", margin: "0 auto" },
   footer: { maxWidth: 850, margin: "32px auto 0", textAlign: "center", color: "#6b7280", fontSize: 14 },
 };
 
