@@ -118,7 +118,7 @@ ${JSON.stringify(atsAnalysis || {}, null, 2)}`;
           }],
           generationConfig: {
             temperature: 0.3,
-            maxOutputTokens: 8000,
+            maxOutputTokens: 16000,
             responseMimeType: "application/json",
           },
         }),
@@ -153,8 +153,8 @@ ${JSON.stringify(atsAnalysis || {}, null, 2)}`;
         try {
           tailoredCV = JSON.parse(jsonMatch[0]);
         } catch {
-          console.error("JSON parse failed:", cleanText);
-          return res.status(500).json({ error: "Could not parse AI response" });
+          console.error("JSON parse failed. Raw text length:", cleanText.length, "First 500 chars:", cleanText.substring(0, 500), "Last 500 chars:", cleanText.substring(cleanText.length - 500));
+          return res.status(500).json({ error: "Could not parse AI response", rawSnippet: cleanText.substring(0, 1000) + "..." + cleanText.substring(cleanText.length - 500) });
         }
       } else {
         return res.status(500).json({ error: "Invalid AI response format" });
