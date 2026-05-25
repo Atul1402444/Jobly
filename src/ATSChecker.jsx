@@ -427,25 +427,6 @@ function ResultsView({ results, onReset, getScoreColor, navigate, cvBase64, jobD
             <p style={styles.pricingFootnote}>Save ₹4,901 vs CV writer</p>
           </div>
 
-          <div style={styles.pricingCardFeatured}>
-            <div style={styles.popularBadge}>⭐ MOST POPULAR</div>
-            <div style={styles.pricingBadgeFeatured}>UNLIMITED</div>
-            <div style={styles.pricingIcon}>💎</div>
-            <h3 style={styles.pricingCardTitleFeatured}>Jobly Pro</h3>
-            <div style={styles.pricingPrice}>
-              <span style={styles.priceCurrencyFeatured}>₹</span>
-              <span style={styles.priceAmountFeatured}>299</span>
-              <span style={styles.pricePeriod}>/month</span>
-            </div>
-            <p style={styles.pricingCardSubtitleFeatured}>For active job hunters</p>
-            <ul style={styles.featureListFeatured}>
-              {[["Unlimited CV tailoring", true], ["Apply to 100+ jobs without rewriting", false], ["Save all your CV versions", false], ["AI job search across 20+ countries", false], ["Priority support", false]].map(([f, bold], i) => (
-                <li key={i} style={styles.featureItem}><span style={styles.featureCheckFeatured}>✓</span><span>{bold ? <strong>{f}</strong> : f}</span></li>
-              ))}
-            </ul>
-            <button style={styles.pricingButtonFeatured} onClick={() => navigate("/?pay=299")}>Subscribe ₹299/mo →</button>
-            <p style={styles.pricingFootnoteFeatured}>💡 Just 3 applications = cheaper than ₹99/CV</p>
-          </div>
         </div>
 
         <div style={styles.trustStrip}>
@@ -516,7 +497,7 @@ const styles = {
   pricingHeader: { textAlign: "center", marginBottom: 32 },
   pricingMainTitle: { fontSize: 36, fontWeight: 700, margin: "0 0 12px", color: "#111827", fontFamily: "'Source Serif 4', Georgia, serif", lineHeight: 1.2 },
   pricingMainSubtitle: { fontSize: 16, color: "#6b7280", margin: "0 auto", lineHeight: 1.6, maxWidth: 600 },
-  pricingGrid: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 24 },
+  pricingGrid: { display: "flex", justifyContent: "center", marginBottom: 24 },
   pricingCard: { backgroundColor: "#ffffff", borderRadius: 16, padding: 32, border: "2px solid #e5e7eb", position: "relative", display: "flex", flexDirection: "column" },
   pricingCardFeatured: { background: "linear-gradient(135deg, #0a66c2 0%, #0073e6 100%)", borderRadius: 16, padding: 32, color: "#ffffff", position: "relative", display: "flex", flexDirection: "column", boxShadow: "0 10px 30px rgba(10,102,194,0.3)", transform: "scale(1.02)" },
   popularBadge: { position: "absolute", top: -12, left: "50%", transform: "translateX(-50%)", backgroundColor: "#fbbf24", color: "#78350f", padding: "4px 16px", borderRadius: 12, fontSize: 11, fontWeight: 700, letterSpacing: "0.05em" },
