@@ -14,6 +14,12 @@ export default function ATSChecker() {
   const [analyzing, setAnalyzing] = useState(false);
   const [results, setResults] = useState(null);
   const [error, setError] = useState("");
+  const [showPayModal, setShowPayModal] = useState(false);
+  const [payFirstName, setPayFirstName] = useState("");
+  const [payEmail, setPayEmail] = useState("");
+  const [payPhone, setPayPhone] = useState("");
+  const [payProcessing, setPayProcessing] = useState(false);
+  const [payError, setPayError] = useState("");
 
   // Handle CV upload — converts PDF to base64, works on ALL devices
   const handleFileUpload = async (e) => {
@@ -219,6 +225,88 @@ ${jobDescription}`;
     return "Poor";
   };
 
+  const handlePayNow = async () => {
+    setPayError("");
+
+    if (!payFirstName.trim() || payFirstName.trim().length < 2) {
+      setPayError("Please enter your first name");
+      return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(payEmail)) {
+      setPayError("Please enter a valid email");
+      return;
+    }
+    if (!/^[6-9]\d{9}$/.test(payPhone)) {
+      setPayError("Please enter a valid 10-digit Indian mobile number");
+      return;
+    }
+
+    setPayProcessing(true);
+
+    sessionStorage.setItem("jobly_cv_base64", cvBase64);
+    sessionStorage.setItem("jobly_job_description", jobDescription);
+    sessionStorage.setItem("jobly_ats_analysis", JSON.stringify(results));
+    sessionStorage.setItem("jobly_customer_email", payEmail);
+    sessionStorage.setItem("jobly_customer_name", payFirstName);
+
+    try {
+      const response = await fetch("/api/payu-initiate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: payEmail,
+          firstname: payFirstName.trim(),
+          phone: payPhone,
+          productinfo: "Jobly Tailored CV",
+          amount: "99",
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        console.error("PayU initiate failed:", data);
+        setPayError("Payment setup failed. Please try again or contact support.");
+        setPayProcessing(false);
+        return;
+      }
+
+      const form = document.createElement("form");
+      form.method = "POST";
+      form.action = "https://test.payu.in/_payment";
+      form.style.display = "none";
+
+      const fields = {
+        key: data.key,
+        txnid: data.txnid,
+        amount: data.amount,
+        productinfo: data.productinfo,
+        firstname: data.firstname,
+        email: data.email,
+        phone: data.phone,
+        surl: data.surl,
+        furl: data.furl,
+        hash: data.hash,
+      };
+
+      Object.entries(fields).forEach(([name, value]) => {
+        const input = document.createElement("input");
+        input.type = "hidden";
+        input.name = name;
+        input.value = value;
+        form.appendChild(input);
+      });
+
+      document.body.appendChild(form);
+      form.submit();
+    } catch (err) {
+      console.error("Payment error:", err);
+      setPayError("Something went wrong. Please try again or contact us on WhatsApp.");
+      setPayProcessing(false);
+    }
+  };
+
+
   return (
     <div style={styles.page}>
       <header style={styles.header}>
@@ -423,7 +511,7 @@ function ResultsView({ results, onReset, getScoreColor, navigate, cvBase64, jobD
                 <li key={i} style={styles.featureItem}><span style={styles.featureCheck}>✓</span><span>{f}</span></li>
               ))}
             </ul>
-            <button style={styles.pricingButtonOneTime} onClick={() => { sessionStorage.setItem("jobly_cv_base64", cvBase64); sessionStorage.setItem("jobly_job_description", jobDescription); sessionStorage.setItem("jobly_ats_analysis", JSON.stringify(results)); navigate("/payment-success"); }}>Get Tailored CV — ₹99 →</button>
+            <button style={styles.pricingButtonOneTime} onClick={() => setShowPayModal(true)}>Get Tailored CV — ₹99 →</button>
             <p style={styles.pricingFootnote}>Save ₹4,901 vs CV writer</p>
           </div>
 
@@ -439,6 +527,64 @@ function ResultsView({ results, onReset, getScoreColor, navigate, cvBase64, jobD
       <div style={styles.tryAgain}>
         <button style={styles.tryAgainBtn} onClick={onReset}>← Check Another CV</button>
       </div>
+
+      {showPayModal && (
+        <div style={styles.modalBackdrop} onClick={() => !payProcessing && setShowPayModal(false)}>
+          <div style={styles.modalCard} onClick={(e) => e.stopPropagation()}>
+            <button style={styles.modalClose} onClick={() => !payProcessing && setShowPayModal(false)} disabled={payProcessing}>×</button>
+            <div style={styles.modalHeader}>
+              <h2 style={styles.modalTitle}>Almost there! 🎉</h2>
+              <p style={styles.modalSubtitle}>Just 3 details to send your tailored CV</p>
+            </div>
+            <div style={styles.modalForm}>
+              <div style={styles.modalField}>
+                <label style={styles.modalLabel}>First Name</label>
+                <input
+                  type="text"
+                  style={styles.modalInput}
+                  value={payFirstName}
+                  onChange={(e) => setPayFirstName(e.target.value)}
+                  placeholder="e.g. Atul"
+                  disabled={payProcessing}
+                />
+              </div>
+              <div style={styles.modalField}>
+                <label style={styles.modalLabel}>Email</label>
+                <input
+                  type="email"
+                  style={styles.modalInput}
+                  value={payEmail}
+                  onChange={(e) => setPayEmail(e.target.value)}
+                  placeholder="you@example.com"
+                  disabled={payProcessing}
+                />
+              </div>
+              <div style={styles.modalField}>
+                <label style={styles.modalLabel}>Phone (Indian mobile)</label>
+                <input
+                  type="tel"
+                  style={styles.modalInput}
+                  value={payPhone}
+                  onChange={(e) => setPayPhone(e.target.value.replace(/\D/g, "").slice(0, 10))}
+                  placeholder="9876543210"
+                  disabled={payProcessing}
+                  maxLength={10}
+                />
+              </div>
+              {payError && <div style={styles.modalError}>{payError}</div>}
+              <button
+                style={{ ...styles.modalSubmit, opacity: payProcessing ? 0.6 : 1, cursor: payProcessing ? "wait" : "pointer" }}
+                onClick={handlePayNow}
+                disabled={payProcessing}
+              >
+                {payProcessing ? "Processing..." : "Pay ₹99 →"}
+              </button>
+              <p style={styles.modalFooter}>🔒 Secure payment via PayU · UPI / Card / Wallet</p>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
@@ -528,4 +674,17 @@ const styles = {
   trustIcon: { fontSize: 16 },
   tryAgain: { textAlign: "center", padding: "24px 0" },
   tryAgainBtn: { background: "none", border: "none", color: "#0a66c2", fontSize: 15, fontWeight: 600, cursor: "pointer" },
+  modalBackdrop: { position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.6)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: 20, backdropFilter: "blur(4px)" },
+  modalCard: { backgroundColor: "#ffffff", borderRadius: 16, padding: 32, maxWidth: 440, width: "100%", position: "relative", boxShadow: "0 20px 60px rgba(0,0,0,0.3)", maxHeight: "90vh", overflowY: "auto" },
+  modalClose: { position: "absolute", top: 12, right: 16, background: "none", border: "none", fontSize: 28, color: "#9ca3af", cursor: "pointer", lineHeight: 1, padding: 4 },
+  modalHeader: { marginBottom: 24, textAlign: "center" },
+  modalTitle: { fontSize: 24, fontWeight: 700, color: "#111827", margin: "0 0 8px", fontFamily: "'Source Serif 4', Georgia, serif" },
+  modalSubtitle: { fontSize: 14, color: "#6b7280", margin: 0 },
+  modalForm: { display: "flex", flexDirection: "column", gap: 16 },
+  modalField: { display: "flex", flexDirection: "column", gap: 6 },
+  modalLabel: { fontSize: 13, fontWeight: 600, color: "#374151" },
+  modalInput: { padding: "12px 14px", fontSize: 15, border: "1px solid #d1d5db", borderRadius: 8, outline: "none", fontFamily: "inherit", transition: "border-color 0.2s" },
+  modalError: { padding: "10px 12px", backgroundColor: "#fef2f2", color: "#dc2626", borderRadius: 8, fontSize: 13, fontWeight: 500 },
+  modalSubmit: { padding: "14px 24px", backgroundColor: "#0a66c2", color: "#ffffff", border: "none", borderRadius: 8, fontSize: 16, fontWeight: 700, marginTop: 4 },
+  modalFooter: { fontSize: 12, color: "#6b7280", textAlign: "center", margin: "8px 0 0" },
 };
