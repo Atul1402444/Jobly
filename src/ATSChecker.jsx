@@ -14,12 +14,6 @@ export default function ATSChecker() {
   const [analyzing, setAnalyzing] = useState(false);
   const [results, setResults] = useState(null);
   const [error, setError] = useState("");
-  const [showPayModal, setShowPayModal] = useState(false);
-  const [payFirstName, setPayFirstName] = useState("");
-  const [payEmail, setPayEmail] = useState("");
-  const [payPhone, setPayPhone] = useState("");
-  const [payProcessing, setPayProcessing] = useState(false);
-  const [payError, setPayError] = useState("");
 
   // Handle CV upload — converts PDF to base64, works on ALL devices
   const handleFileUpload = async (e) => {
@@ -225,86 +219,6 @@ ${jobDescription}`;
     return "Poor";
   };
 
-  const handlePayNow = async () => {
-    setPayError("");
-
-    if (!payFirstName.trim() || payFirstName.trim().length < 2) {
-      setPayError("Please enter your first name");
-      return;
-    }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(payEmail)) {
-      setPayError("Please enter a valid email");
-      return;
-    }
-    if (!/^[6-9]\d{9}$/.test(payPhone)) {
-      setPayError("Please enter a valid 10-digit Indian mobile number");
-      return;
-    }
-
-    setPayProcessing(true);
-
-    sessionStorage.setItem("jobly_cv_base64", cvBase64);
-    sessionStorage.setItem("jobly_job_description", jobDescription);
-    sessionStorage.setItem("jobly_ats_analysis", JSON.stringify(results));
-    sessionStorage.setItem("jobly_customer_email", payEmail);
-    sessionStorage.setItem("jobly_customer_name", payFirstName);
-
-    try {
-      const response = await fetch("/api/payu-initiate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: payEmail,
-          firstname: payFirstName.trim(),
-          phone: payPhone,
-          productinfo: "Jobly Tailored CV",
-          amount: "99",
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok || !data.success) {
-        console.error("PayU initiate failed:", data);
-        setPayError("Payment setup failed. Please try again or contact support.");
-        setPayProcessing(false);
-        return;
-      }
-
-      const form = document.createElement("form");
-      form.method = "POST";
-      form.action = "https://test.payu.in/_payment";
-      form.style.display = "none";
-
-      const fields = {
-        key: data.key,
-        txnid: data.txnid,
-        amount: data.amount,
-        productinfo: data.productinfo,
-        firstname: data.firstname,
-        email: data.email,
-        phone: data.phone,
-        surl: data.surl,
-        furl: data.furl,
-        hash: data.hash,
-      };
-
-      Object.entries(fields).forEach(([name, value]) => {
-        const input = document.createElement("input");
-        input.type = "hidden";
-        input.name = name;
-        input.value = value;
-        form.appendChild(input);
-      });
-
-      document.body.appendChild(form);
-      form.submit();
-    } catch (err) {
-      console.error("Payment error:", err);
-      setPayError("Something went wrong. Please try again or contact us on WhatsApp.");
-      setPayProcessing(false);
-    }
-  };
 
 
   return (
@@ -402,6 +316,93 @@ ${jobDescription}`;
 
 function ResultsView({ results, onReset, getScoreColor, navigate, cvBase64, jobDescription }) {
   const scoreColor = getScoreColor(results.score);
+  const [showPayModal, setShowPayModal] = useState(false);
+  const [payFirstName, setPayFirstName] = useState("");
+  const [payEmail, setPayEmail] = useState("");
+  const [payPhone, setPayPhone] = useState("");
+  const [payProcessing, setPayProcessing] = useState(false);
+  const [payError, setPayError] = useState("");
+
+  const handlePayNow = async () => {
+    setPayError("");
+
+    if (!payFirstName.trim() || payFirstName.trim().length < 2) {
+      setPayError("Please enter your first name");
+      return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(payEmail)) {
+      setPayError("Please enter a valid email");
+      return;
+    }
+    if (!/^[6-9]\d{9}$/.test(payPhone)) {
+      setPayError("Please enter a valid 10-digit Indian mobile number");
+      return;
+    }
+
+    setPayProcessing(true);
+
+    sessionStorage.setItem("jobly_cv_base64", cvBase64);
+    sessionStorage.setItem("jobly_job_description", jobDescription);
+    sessionStorage.setItem("jobly_ats_analysis", JSON.stringify(results));
+    sessionStorage.setItem("jobly_customer_email", payEmail);
+    sessionStorage.setItem("jobly_customer_name", payFirstName);
+
+    try {
+      const response = await fetch("/api/payu-initiate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: payEmail,
+          firstname: payFirstName.trim(),
+          phone: payPhone,
+          productinfo: "Jobly Tailored CV",
+          amount: "99",
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        console.error("PayU initiate failed:", data);
+        setPayError("Payment setup failed. Please try again or contact support.");
+        setPayProcessing(false);
+        return;
+      }
+
+      const form = document.createElement("form");
+      form.method = "POST";
+      form.action = "https://test.payu.in/_payment";
+      form.style.display = "none";
+
+      const fields = {
+        key: data.key,
+        txnid: data.txnid,
+        amount: data.amount,
+        productinfo: data.productinfo,
+        firstname: data.firstname,
+        email: data.email,
+        phone: data.phone,
+        surl: data.surl,
+        furl: data.furl,
+        hash: data.hash,
+      };
+
+      Object.entries(fields).forEach(([name, value]) => {
+        const input = document.createElement("input");
+        input.type = "hidden";
+        input.name = name;
+        input.value = value;
+        form.appendChild(input);
+      });
+
+      document.body.appendChild(form);
+      form.submit();
+    } catch (err) {
+      console.error("Payment error:", err);
+      setPayError("Something went wrong. Please try again or contact us on WhatsApp.");
+      setPayProcessing(false);
+    }
+  };
 
   return (
     <div style={styles.resultsContainer}>
