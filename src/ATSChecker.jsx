@@ -371,7 +371,7 @@ function ResultsView({ results, onReset, getScoreColor, navigate, cvBase64, jobD
 
       const form = document.createElement("form");
       form.method = "POST";
-      form.action = "https://test.payu.in/_payment";
+      form.action = "https://secure.payu.in/_payment";
       form.style.display = "none";
 
       const fields = {
