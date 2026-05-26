@@ -131,8 +131,30 @@ export default function PaymentSuccess() {
         </div>
       </div>
 
+      <div style={styles.refundCard}>
+        <div style={styles.refundHeader}>
+          <span style={styles.refundIcon}>🔒</span>
+          <h3 style={styles.refundTitle}>Refund Policy</h3>
+        </div>
+        <p style={styles.refundBody}>
+          If your CV fails to generate or you encounter a technical error, you'll receive a full refund within 24 hours.
+        </p>
+        <div style={styles.refundSteps}>
+          <p style={styles.refundStepsTitle}>How to request a refund:</p>
+          <ol style={styles.refundStepsList}>
+            <li>Take a screenshot of the error or issue</li>
+            <li>WhatsApp it to <strong>+91 99711 41401</strong></li>
+            <li>Refund will be processed within 24 hours</li>
+          </ol>
+        </div>
+        <div style={styles.refundBadges}>
+          <span style={styles.refundBadge}>✓ Technical errors only</span>
+          <span style={styles.refundBadge}>✓ Verified within 24hr</span>
+          <span style={styles.refundBadge}>✓ Direct WhatsApp support</span>
+        </div>
+      </div>
+
       <div style={styles.footer}>
-        <p>Need changes? WhatsApp us and we'll revise within 1 hour.</p>
         <button style={styles.secondaryBtn} onClick={() => navigate("/")}>← Back to Jobly</button>
       </div>
     </div>
@@ -277,6 +299,17 @@ function CVTemplate({ cv }) {
 }
 
 const styles = {
+  refundCard: { maxWidth: 850, margin: "24px auto", padding: "24px 28px", backgroundColor: "#fffbeb", border: "1px solid #fde68a", borderRadius: 12 },
+  refundHeader: { display: "flex", alignItems: "center", gap: 10, marginBottom: 12 },
+  refundIcon: { fontSize: 22 },
+  refundTitle: { fontSize: 18, fontWeight: 700, color: "#92400e", margin: 0, fontFamily: "'Source Serif 4', Georgia, serif" },
+  refundBody: { fontSize: 14, color: "#78350f", lineHeight: 1.6, margin: "0 0 16px" },
+  refundSteps: { backgroundColor: "#ffffff", padding: "14px 18px", borderRadius: 8, marginBottom: 16 },
+  refundStepsTitle: { fontSize: 13, fontWeight: 700, color: "#78350f", margin: "0 0 8px" },
+  refundStepsList: { margin: 0, paddingLeft: 20, fontSize: 13, color: "#78350f", lineHeight: 1.8 },
+  refundBadges: { display: "flex", flexWrap: "wrap", gap: 8 },
+  refundBadge: { padding: "4px 10px", backgroundColor: "#fef3c7", color: "#92400e", borderRadius: 20, fontSize: 12, fontWeight: 600 },
+
   page: { minHeight: "100vh", backgroundColor: "#f3f4f6", fontFamily: "Inter, -apple-system, BlinkMacSystemFont, sans-serif", padding: "40px 20px" },
   centerCard: { maxWidth: 600, margin: "60px auto", backgroundColor: "#ffffff", borderRadius: 16, padding: 48, textAlign: "center", boxShadow: "0 4px 20px rgba(0,0,0,0.06)" },
   successIcon: { width: 64, height: 64, borderRadius: "50%", backgroundColor: "#dcfce7", color: "#15803d", fontSize: 32, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px" },
