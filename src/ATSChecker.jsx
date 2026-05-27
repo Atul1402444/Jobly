@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Footer from "./pages/Footer.jsx";
 
@@ -14,6 +14,35 @@ export default function ATSChecker() {
   const [analyzing, setAnalyzing] = useState(false);
   const [results, setResults] = useState(null);
   const [error, setError] = useState("");
+
+  // Handle redirect from homepage Tailor CV button (direct=true means skip upload, go to payment)
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get("direct") === "true") {
+      const base64 = sessionStorage.getItem("jobly_cv_base64");
+      const jd = sessionStorage.getItem("jobly_job_description");
+      const analysis = sessionStorage.getItem("jobly_ats_analysis");
+      const jobTitle = sessionStorage.getItem("jobly_job_title");
+      if (base64 && jd && analysis) {
+        setCvBase64(base64);
+        setJobDescription(jd);
+        try {
+          const parsed = JSON.parse(analysis);
+          parsed.jobTitle = jobTitle || "";
+          setResults(parsed);
+        } catch (e) {
+          console.error("Failed to parse stored analysis", e);
+        }
+        // Clear sessionStorage so refresh doesn't loop
+        sessionStorage.removeItem("jobly_cv_base64");
+        sessionStorage.removeItem("jobly_job_description");
+        sessionStorage.removeItem("jobly_ats_analysis");
+        sessionStorage.removeItem("jobly_job_title");
+        // Clean URL
+        window.history.replaceState({}, document.title, "/ats-check");
+      }
+    }
+  }, []);
 
   // Handle CV upload — converts PDF to base64, works on ALL devices
   const handleFileUpload = async (e) => {

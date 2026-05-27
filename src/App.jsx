@@ -264,6 +264,7 @@ export default function App() {
   const FREE_LIMIT = 2;
   const [step, setStep] = useState("upload");
   const [cvText, setCvText] = useState("");
+  const [cvBase64Home, setCvBase64Home] = useState("");
   const [profile, setProfile] = useState(null);
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -307,6 +308,16 @@ export default function App() {
       const file = files[0];
       const text = file.type === "application/pdf" ? await extractTextFromPDF(file) : await file.text();
       setCvText(text);
+      // Also save base64 for Tailor CV → payment flow
+      if (file.type === "application/pdf") {
+        const base64 = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result.split(",")[1]);
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+        setCvBase64Home(base64);
+      }
       setStep("ready");
     }
   });
@@ -959,7 +970,14 @@ export default function App() {
                   </div>
                   <div style={{ fontSize: "0.8rem", padding: "6px 12px", borderRadius: "100px", background: job.matchScore >= 80 ? "#dcfce7" : "#e7f3ff", color: job.matchScore >= 80 ? "#15803d" : "#0a66c2", fontWeight: 600, whiteSpace: "nowrap" }}>{job.matchScore}% match</div>
                   <div style={{ display: "flex", gap: "8px", flexShrink: 0 }}>
-                    <button onClick={() => handleTailor(job)} style={{ background: "transparent", color: "#0a66c2", border: "1px solid #0a66c2", borderRadius: "100px", padding: "8px 16px", fontWeight: 600, fontSize: "0.85rem", cursor: "pointer", whiteSpace: "nowrap" }}>Tailor CV</button>
+                    <button onClick={() => {
+                      if (!cvBase64Home) { alert("Please upload a PDF CV (not TXT) to use Tailor CV feature."); return; }
+                      sessionStorage.setItem("jobly_cv_base64", cvBase64Home);
+                      sessionStorage.setItem("jobly_job_description", job.description || job.title);
+                      sessionStorage.setItem("jobly_ats_analysis", JSON.stringify({ score: 85, verdict: "Good", strengths: [], weaknesses: [], missing_keywords: [], summary: "Tailored from job search" }));
+                      sessionStorage.setItem("jobly_job_title", job.title);
+                      navigate("/ats-check?direct=true");
+                    }} style={{ background: "transparent", color: "#0a66c2", border: "1px solid #0a66c2", borderRadius: "100px", padding: "8px 16px", fontWeight: 600, fontSize: "0.85rem", cursor: "pointer", whiteSpace: "nowrap" }}>Tailor CV — ₹99</button>
                     <button onClick={() => window.open(job.url, "_blank")} style={{ background: "#0a66c2", color: "#ffffff", border: "none", borderRadius: "100px", padding: "8px 20px", fontWeight: 600, fontSize: "0.85rem", cursor: "pointer", whiteSpace: "nowrap" }}>Apply →</button>
                   </div>
                 </div>
