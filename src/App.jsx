@@ -4,8 +4,6 @@ import { useDropzone } from "react-dropzone";
 import { useNavigate } from "react-router-dom";
 import { SignedIn, SignedOut, SignInButton, SignUpButton, UserButton, useUser } from "@clerk/clerk-react";
 import Footer from "./pages/Footer.jsx";
-import * as pdfjsLib from "pdfjs-dist/build/pdf";
-pdfjsLib.GlobalWorkerOptions.workerSrc = "";
 
 const GEMINI_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 const ADZUNA_APP_ID = import.meta.env.VITE_ADZUNA_APP_ID;
@@ -59,15 +57,36 @@ function detectUserCountry() {
 const userPricing = PRICING[detectUserCountry()] || { symbol: "$", amount: 6 };
 
 async function extractTextFromPDF(file) {
-  const arrayBuffer = await file.arrayBuffer();
-  const pdf = await pdfjsLib.getDocument({ data: arrayBuffer, useWorkerFetch: false, isEvalSupported: false, useSystemFonts: true }).promise;
-  let fullText = "";
-  for (let i = 1; i <= pdf.numPages; i++) {
-    const page = await pdf.getPage(i);
-    const content = await page.getTextContent();
-    fullText += content.items.map(it => it.str).join(" ") + "\n";
-  }
-  return fullText;
+  // Convert PDF to base64 and let Gemini read it natively (no PDF.js needed)
+  const base64 = await new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result.split(",")[1]);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${GEMINI_KEY}`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contents: [{
+          parts: [
+            { inline_data: { mime_type: "application/pdf", data: base64 } },
+            { text: "Extract all text from this CV/resume PDF. Return ONLY the raw text content, no commentary, no formatting markers, no explanations. Just the text exactly as it appears in the document." }
+          ]
+        }],
+        generationConfig: { maxOutputTokens: 8000, temperature: 0.1 }
+      })
+    }
+  );
+
+  const data = await res.json();
+  if (data.error) throw new Error(data.error.message);
+  const text = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
+  if (!text) throw new Error("Could not extract text from PDF");
+  return text;
 }
 
 async function parseCV(text) {
