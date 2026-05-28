@@ -261,7 +261,7 @@ function detectJobType(job) {
 export default function App() {
   const navigate = useNavigate();
   const { user } = useUser();
-  const FREE_LIMIT = 2;
+  const FREE_LIMIT = 999999;
   const [step, setStep] = useState("upload");
   const [cvText, setCvText] = useState("");
   const [cvBase64Home, setCvBase64Home] = useState("");
@@ -679,7 +679,7 @@ export default function App() {
               </SignInButton>
             </div>
             <p style={{ fontSize: "0.9rem", color: "#737373" }}>
-              <span style={{ color: "#0a66c2", fontWeight: 600 }}>2 free searches</span> — no credit card required.
+              <span style={{ color: "#0a66c2", fontWeight: 600 }}>Free job search</span> — no credit card required.
             </p>
 
             {/* OR Divider */}
@@ -808,7 +808,7 @@ export default function App() {
               color: hasPaid ? "#4338ca" : (searchesUsed >= FREE_LIMIT ? "#b24020" : "#0a66c2"),
               padding: "6px 14px", borderRadius: "100px", fontSize: "0.85rem", fontWeight: 600
             }}>
-              {hasPaid ? "💎 Pro Member" : (searchesUsed >= FREE_LIMIT ? "Upgrade to continue" : `${FREE_LIMIT - searchesUsed} free ${FREE_LIMIT - searchesUsed !== 1 ? "searches" : "search"} left`)}
+              {hasPaid ? "💎 Pro Member" : "Free job search"}
             </div>
             <UserButton afterSignOutUrl="/" />
           </div>
